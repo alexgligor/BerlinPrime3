@@ -1,0 +1,18 @@
+﻿@page "/receptionleadpage"
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div>
+    <h2>Mesaj de Informare</h2>
+    <p>Acesta este un mesaj de informare pentru utilizatori.</p>
+
+    <button class="btn btn-primary" @onclick="()=>Finis(Environment.MachineName)">Mergi la receptie</button>
+</div>
+
+@code {
+
+    void Finis(String machineName)
+    {
+        NavigationManager.NavigateTo($"/reception/{machineName}");
+    }
+}

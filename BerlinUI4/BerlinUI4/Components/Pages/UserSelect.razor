@@ -1,0 +1,93 @@
+﻿@page "/userselect/{MachineName}"
+@layout EmptyLayout
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IGenericService<Site> serviceSite
+@inject IGenericService<User> serviceUser
+@inject IGenericService<Device> serviceDevice
+@using Berlin.Infrastructure
+@using System.Text.Json
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Selectare Utilizator</PageTitle>
+<div class="align-content-center p-5">
+    <div class="container-fluid vh-100">
+        <div class="row justify-content-between">
+            <div class="col-auto">
+                <h1 class="fs-5">Selectare utilizator curent</h1>
+            </div>
+            <div class="col-auto">
+                @if (site != null)
+                {
+                    <a href="/devize/@site.Id">
+                        <button class="btn btn-primary">Încarcă un deviz existent</button>
+                    </a>
+                }
+            </div>
+        </div>
+
+
+
+        <hr />
+        <div class="row mb-2 " style="margin:2vh;">
+            @if (users == null)
+            {
+                <p>Se incarca ...</p>
+            }
+            else
+                @foreach (var usr in users)
+                {
+                    <div class="col-md-2 d-block align-items-center justify-content-center text-center ">
+                        @if (usr != null)
+                        {
+                            var imgUrl = string.IsNullOrEmpty(usr.ImageUrl) ? "https://github.com/mdo.png" : usr.ImageUrl;
+
+                            <img src="@imgUrl" alt="mdo" width="150" height="150" class="rounded-circle p-2" @onclick="()=>SelectUser(usr)" style="cursor: pointer;">
+
+                            <p>
+                                <div class="strong" style="m-0 p-0">@usr.Title</div>
+                                <br />
+                                <small>@usr.Description</small>
+                            </p>
+
+
+                        }
+                    </div>
+                }
+        </div>
+    </div>
+    <div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string MachineName { get; set; }
+    private Site? site { get; set; }
+    private List<User> users { get; set; } = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var devices = await serviceDevice.FindAll(d => d.Title == MachineName);
+        var device = devices.FirstOrDefault();
+        site = await serviceSite.Find(device.SiteId, s => s.Users, s => s.Divisions);
+        if (site == null)
+            return;
+
+        foreach (var su in site.Users)
+        {
+            su.User = await serviceUser.Find(su.UserId);
+        }
+
+        users = site.Users.Select(s => s.User).ToList();
+    }
+
+    async void SelectUser(User selectedUser)
+    {
+
+        Utile.SetSessionData(site, MachineName);
+        Utile.SetSessionData(selectedUser, MachineName);
+        NavigationManager.NavigateTo($"/divisionselect/{MachineName}");
+    }
+}

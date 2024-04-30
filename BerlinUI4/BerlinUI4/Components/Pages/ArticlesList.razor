@@ -1,0 +1,213 @@
+﻿@page "/articleslist"
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@inject IGenericService<GenericArticle> genericArticleService
+@inject IJSRuntime JSRuntime
+
+
+<PageTitle>Lista Articole</PageTitle>
+
+<h1>Articole</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (list == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="d-flex justify-content-center align-items-center ">
+        <InputText class="form-control-sm" @bind-Value="searchObjet" @oninput="HandleInputChange" DisplayName="Cauta" />
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#0" aria-controls="0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+            </svg>
+        </button>
+   </div>
+    <hr/>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nume</th>
+                <th>Descriere</th>
+                <th>Cantitate</th>
+                <th>Locație</th>
+                <th>Creat</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="0" class="@addArticleClass">
+
+                <td><button @onclick="NewArticleSubmitCancel" class="btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                        </svg>
+                </button></td>
+                <td><InputText @bind-Value="newArticle.Title" /></td>
+                <td><InputText @bind-Value="newArticle.Description" /></td>
+                <td><InputNumber @bind-Value="newArticle.Count" /></td>
+                <td><InputText @bind-Value="newArticle.Location" /></td>
+                <td><button @onclick="NewArticleSubmit" class="btn">Add</button></td>
+                <td></td>
+            </tr>
+            @{int i=0;}
+            @foreach (var article in list)
+            {
+                i++;
+                if (!rows.ContainsKey(article))
+                    rows.Add(article, "accordion-collapse accordion-body collapse show");
+                <tr class="@rows[article]">
+
+                    <td>@i.ToString()</td>
+                        
+                    <td>@article.Title</td>
+                    <td>@article.Description</td>
+                    <td>@article.Count</td>
+                    <td>@article.Location</td>
+                    <td>@article.CreateDate.ToShortDateString() @article.CreateDate.ToShortTimeString() </td>
+                    <td>
+                        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#@article.Id" aria-controls="@article.Id" @onclick ="()=>HideRow(article)" >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                            </svg>
+                        </button>
+
+
+                        <button class="btn" @onclick="()=>Delete(article)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                    if(!accordions.ContainsKey(article))
+                        accordions.Add(article, "accordion-collapse  collapse accordion-body");
+
+                <tr class="@accordions[article]">
+
+                    <td>            
+                    </td>
+                  
+                    <td><InputText @bind-Value="article.Title" /></td>
+                    <td><InputText @bind-Value="article.Description" /></td>
+                    <td><InputNumber @bind-Value="article.Count" /></td>
+                    <td><InputText @bind-Value="article.Location" /></td>
+                    <td><button @onclick="()=>UpdateArticle(article)" class="btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy-fill" viewBox="0 0 16 16">
+                                <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0H3v5.5A1.5 1.5 0 0 0 4.5 7h7A1.5 1.5 0 0 0 13 5.5V0h.086a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5H14v-5.5A1.5 1.5 0 0 0 12.5 9h-9A1.5 1.5 0 0 0 2 10.5V16h-.5A1.5 1.5 0 0 1 0 14.5z" />
+                                <path d="M3 16h10v-5.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5zm9-16H4v5.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5zM9 1h2v4H9z" />
+                            </svg>
+                    </button></td>
+                    <td>
+                        <button @onclick="()=>UpdateArticleSubmitCancel(article)" class="btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                            </svg>
+                        </button>
+                    </td>
+                       
+                </tr>
+            }
+        </tbody>
+
+    </table>
+}
+
+@code {
+    private List<GenericArticle>? list;
+
+    private List<GenericArticle>? listSave;
+
+    private string searchObjet { get; set; }
+
+    private string addArticleClass { get; set; } = "accordion-collapse collapse accordion-body";
+
+    private GenericArticle newArticle { get; set; } = new GenericArticle();
+    private Dictionary<GenericArticle, string> accordions { get; set; } = new();
+    private Dictionary<GenericArticle, string> rows { get; set; } = new();
+
+   
+
+    protected override async Task OnInitializedAsync()
+    {
+        listSave = await genericArticleService.GetAll();
+        list = listSave;
+    }
+
+    async Task NewArticleSubmit()
+    {
+        var article =  await genericArticleService.Add(newArticle);
+        listSave.Add(article);
+        list.Insert(0, newArticle); 
+        addArticleClass = addArticleClass + " a";
+        newArticle = new GenericArticle();
+        StateHasChanged();
+    }
+
+    async Task NewArticleSubmitCancel()
+    {
+        addArticleClass = addArticleClass + " a";
+        newArticle = new GenericArticle();
+        StateHasChanged();
+    }
+    async Task UpdateArticleSubmitCancel(GenericArticle article)
+    {
+        rows[article] = "accordion-collapse accordion-body collapse show";
+        accordions[article] = "accordion-collapse collapse accordion-body";
+
+        accordions[article] = accordions[article] + " a";
+        StateHasChanged();
+    }
+
+    async Task HideRow(GenericArticle article)
+    {
+        rows[article] = "accordion-collapse collapse accordion-body";
+        accordions[article] = "accordion-collapse accordion-body collapse show";
+        StateHasChanged();
+    }
+
+
+
+    //poti sa faci la fel si pentru search si update - cu update context
+    async Task Delete(GenericArticle article)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Ești sigur că vrei să ștergi?");
+        if (confirmed)
+        {
+            await genericArticleService.Remove(article);
+            listSave.Remove(article);
+            list.Remove(article);
+            // list = await genericArticleService.GetAll(); // Reîncărcați lista după ștergere
+            StateHasChanged(); // Reîmprospătați componenta pentru a reflecta schimbările
+        }
+    }
+
+    private async Task UpdateArticle(GenericArticle article)
+    {
+        await genericArticleService.Update(article);
+        accordions[article] = "accordion-collapse collapse accordion-body";
+        rows[article] = "accordion-collapse accordion-body collapse show";
+        //  list = await genericArticleService.GetAll(); // Reîncărcați lista după ștergere
+        StateHasChanged(); // Reîmprospătați componenta pentru a reflecta schimbările
+    }
+
+    private async Task HandleInputChange(ChangeEventArgs e)
+    {
+        var findStr = e.Value.ToString();
+        list = listSave.Where(art => art.Location.ToLower().Contains(findStr.ToLower())
+                                                        || art.Title.ToLower().Contains(findStr.ToLower())
+                                                        || art.Description.ToLower().Contains(findStr.ToLower())
+                                                        || art.Count.ToString().Contains(findStr.ToLower())
+                                                        || art.Price.ToString().Contains(findStr.ToLower())).ToList();
+        //list = await genericArticleService.FindAll(e.Value.ToString());
+        StateHasChanged(); 
+    }
+}

@@ -1,0 +1,232 @@
+﻿@page "/reception/{MachineName}"
+@using Berlin.Infrastructure
+@using Berlin.Domain.Entities.Enums
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@inject IGenericService<Receipt> receiptService
+@inject IGenericService<Device> deviceService
+@inject IGenericService<SelledService> selectedServiceService
+
+@inject IJSRuntime JSRuntime
+
+
+<PageTitle>Lista Articole</PageTitle>
+
+<h1>Receptie</h1>
+
+@if (list == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="d-flex justify-content-center align-items-center ">
+        <InputText class="form-control-sm" @bind-Value="searchObjet" DisplayName="Cauta" @oninput="HandleInputChange" />
+   </div>
+    <hr/>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nume</th>
+                <th>Descriere</th>
+                <th>Plata</th>
+                <th></th>
+                <th>Creat</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{int i=0;}
+            @foreach (var article in list)
+            {
+                i++;                
+                var payMethod = "";
+                switch(article.PayMethod)
+                {
+                    case PayMethod.NotPayed: payMethod = "🚫"; break;
+                    case PayMethod.Card: payMethod = "💳"; break;
+                    case PayMethod.Cash: payMethod = "💵";  break;
+                    case PayMethod.OP: payMethod = "🏦"; break;
+                    case PayMethod.Other: payMethod = "🔄"; break;
+                }
+
+                <tr>
+                    <th>@i</th>
+                    <th>@article.Title</th>
+                    <th>@article.Description</th>
+                    <th>
+                        @payMethod
+                    </th>
+                    <th><a  @onclick="()=>Selected(article)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
+                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
+                            </svg>
+                    </a></th>
+                    <th>@article.CreateDate</th>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (showModal)
+{
+    <div class="modal-backdrop align-content-center p-md-3">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-bottom-0 ">
+                <h1 class="modal-title fs-5">@currentReceipt.Title</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" @onclick="()=>showModal=false" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer d-block">
+                <div class="row overflow-auto" id="UsersId">
+                    @if (currentReceiptSelledSerices != null)
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nume</th>
+                                    <th>Pret</th>
+                                    <th>Bucati</th>
+                                    <th>Total</th>
+                                    <th>Creat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int i = 0;
+                                    float total = 0;
+                                }
+                                @foreach (var item in currentReceiptSelledSerices)
+                                {
+                                    i++;
+                                    var sum = item.Count * @item.Service.Price;
+                                    total += sum;
+                                    <tr>
+                                        <th>@i</th>
+                                        <th>@item.Service.Title</th>
+                                        <th>@item.Service.Price</th>
+                                        <th>@item.Count</th>
+                                        <th>@sum</th>
+                                        <th>@item.User.Title</th>
+                                     </tr>
+                                }
+                                
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th></th>
+                                    <th colspan="3"><b>Total</b></th>
+                                    <th colspan="2"><b>@total</b></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    }
+
+                    <div class="d-flex">
+                        <select style="width:auto" value="@currentReceipt.PayMethod.ToString()"  @onchange="HandleOnChange">
+                            <option value="0">🚫</option>
+                            <option value="1">💵</option>
+                            <option value="2">💳</option>
+                            <option value="3">🏦</option>
+                            <option value="4">🔄</option>
+                        </select>
+                        <button class="m-1 btn btn-primary"> Deviz</button>
+                        <button class="m-1 btn btn-danger"> Factura</button>
+                        <button class="m-1 btn btn-dark"> Plata</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string MachineName { get; set; }
+
+    private List<Receipt>? list;
+
+    private List<Receipt>? listNotFiltered;
+
+    private List<SelledService> currentReceiptSelledSerices;
+
+    private string searchObjet { get; set; }
+
+    private System.Threading.Timer timer;
+
+    private Receipt currentReceipt { get; set; }
+
+    private Device device;
+
+    private bool showModal { get; set; }
+
+    private bool filterOn = false;
+
+    private async void HandleOnChange(ChangeEventArgs e)
+    {
+        currentReceipt.PayMethod = (PayMethod)Convert.ToInt32(e.Value.ToString());
+        await receiptService.Update(currentReceipt);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        timer = new System.Threading.Timer(UpdateList, null, 0, 3000);
+
+        var devices = await deviceService.FindAll(d => d.Title == MachineName);
+        if (devices.Count == 0)
+            return;
+        device = devices.FirstOrDefault();
+
+        list = await receiptService.FindAll(r => r.SiteId == device.SiteId);
+        listNotFiltered = list;
+    }
+
+    private void UpdateList(object state)
+    {
+        InvokeAsync( async () =>
+        {
+            if (filterOn)
+                return;
+            var newList = await receiptService.FindAll(r => r.SiteId == device.SiteId);
+            if(newList.Count != list.Count)
+            {
+                listNotFiltered = newList;
+                list = listNotFiltered;
+                StateHasChanged();
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+
+    private async Task HandleInputChange(ChangeEventArgs e)
+    {
+        var findStr = e.Value.ToString();
+        filterOn = findStr.Length > 0;
+
+        list = listNotFiltered.Where(art =>  art.Title.ToLower().Contains(findStr.ToLower())
+               || art.Description.ToLower().Contains(findStr.ToLower())).ToList();
+        StateHasChanged();
+    }
+
+    async Task Selected(Receipt receipt)
+    {
+        try
+        {
+            currentReceipt = receipt;
+            currentReceiptSelledSerices = await selectedServiceService.FindAll(i => i.ReceiptId == receipt.Id, s=> s.Service, s=>s.User);
+
+            showModal = true;
+        }
+        catch (Exception)
+        {
+            
+        }
+    }
+
+}

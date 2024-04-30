@@ -1,0 +1,184 @@
+﻿@page "/siteconfig"
+@using BerlinUI4.HelpClasses
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IGenericService<Site> serviceSite
+@inject IGenericService<Division> serviceDivision
+@using System.IO
+@inject IWebHostEnvironment Environment
+<h1>Configurare locatii</h1>
+
+@{
+    var i = 0;
+}
+@foreach (var usernode in UserNodes)
+{
+    i++;
+    var panelsStayOpen = "panelsStayOpen-collapseOne" + i;
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button @onclick="()=>NodeClick(usernode)" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#@panelsStayOpen" aria-expanded="true" aria-controls="@panelsStayOpen">
+                @usernode.Item.Title
+            </button>
+        </h2>
+        <div id="@panelsStayOpen" class="@(usernode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+            <div class="accordion-body">
+                <div class="card mb-3" style="max-width: auto;">
+                    <div class="row no-gutters">
+                                           
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <EditForm Model="@usernode.Item" >
+                                    <DataAnnotationsValidator />
+
+                                    <div class="form-group p-2">
+                                        <label for="title">Nume:</label>
+                                        <InputText id="title" class="form-control" @bind-Value="usernode.Item.Title" />
+                                        <ValidationMessage For="@(() => usernode.Item.Title)" class="text-danger" />
+                                        <label for="description">Descriere:</label>
+                                        <InputText id="description" class="form-control" @bind-Value="usernode.Item.Description" />
+                                        <label for="isDeleted">Sterge:</label>
+                                        <InputCheckbox id="isDeleted" @bind-Value="usernode.Item.IsDeleted" />
+                                    </div>
+                                    <button type="submit" class="btn btn-info" @onclick="()=>HandleValidSubmit(usernode)">💾 Salvează</button>
+                                </EditForm>
+                                <p class="card-text"><small class="text-muted">Ultima modificare @usernode.Item.UpdateDate.ToString()</small></p>
+                                                    
+                                                  
+                                <div class="input-group-text d-block">
+                                    @foreach(var site in Sites)
+                                    {
+                                        if (usernode.Item.Divisions.Where(a => a.SiteId == site.Id).Count() > 0)
+                                        {
+                                            <input class="m-2" type="checkbox" checked @onchange="()=>CheckLocation(true, usernode.Item, site)">
+                                        }
+                                        else
+                                        {
+                                            <input class="m-2" type="checkbox"   @onchange="()=>CheckLocation(false, usernode.Item, site)">
+
+                                        }
+
+                                        @site.Title
+                                    }
+                                                                 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+                   
+}
+
+<div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#newuser" aria-expanded="true" aria-controls="newuser">
+            Adauga o noua locatie
+        </button>
+    </h2>
+    <div id="newuser" class="@(newUserNode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+        <div class="accordion-body">
+            <div class="card mb-3" style="max-width: auto;">
+                <div class="row no-gutters">
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <EditForm Model="@newUserNode.Item">
+                                <DataAnnotationsValidator />
+
+                                <div class="form-group p-2">
+                                    <label for="title">Nume:</label>
+                                    <InputText id="title" class="form-control" @bind-Value="newUserNode.Item.Title" />
+                                    <ValidationMessage For="@(() => newUserNode.Item.Title)" class="text-danger" />
+                                    <label for="description">Descriere:</label>
+                                    <InputText id="description" class="form-control" @bind-Value="newUserNode.Item.Description" />
+                                </div>
+
+                                <button type="submit" class="btn btn-info" @onclick="()=>HandleNewUserSubmit(newUserNode.Item)">💾 Salvează</button>
+                            </EditForm>
+                            <p class="card-text"><small class="text-muted">Ultima modificare @newUserNode.Item.UpdateDate.ToString()</small></p>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code{
+    private List<ConfiguratorNode<Site>> UserNodes = new List<ConfiguratorNode<Site>>();
+    private ConfiguratorNode<Site> newUserNode = new ConfiguratorNode<Site>(new Site());
+
+    private bool isUsersOpen = false;
+
+    private List<Division> Sites { get; set; } = new();
+
+    private async Task HandleValidSubmit(ConfiguratorNode<Site> cuser)
+    {
+        await serviceSite.Update(cuser.Item);
+        StateHasChanged();
+    }
+
+    private async Task HandleNewUserSubmit(Site item)
+    {
+        await serviceSite.Add(item);
+
+
+        newUserNode = new ConfiguratorNode<Site>(new Site());
+        UserNodes.Add(new ConfiguratorNode<Site>(item));
+        StateHasChanged();
+    }
+
+    private async Task CheckLocation(bool currentState, Site user, Division site)
+    {
+        if (currentState)
+        {
+            var sitef = user.Divisions.First(s => s.DivisionId == site.Id);
+            user.Divisions.Remove(sitef);
+        }
+        else
+        {
+            user.Divisions.Add(new SiteDivision() { Division = site });
+        }
+
+        await serviceSite.Update(user);
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var users = await serviceSite.GetAll();
+        Sites =  await serviceDivision.GetAll();
+        foreach (var u in users)
+            UserNodes.Add(new ConfiguratorNode<Site>(u));
+    }
+
+    private void NodeClick(ConfiguratorNode<Site> userNode)
+    {
+        userNode.isOpen = !userNode.isOpen;
+        if (!userNode.isOpen)
+            Thread.Sleep(400);
+
+        StateHasChanged();
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is SiteConfigTree tree &&
+               isUsersOpen == tree.isUsersOpen;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(isUsersOpen);
+    }
+
+  
+}
+   

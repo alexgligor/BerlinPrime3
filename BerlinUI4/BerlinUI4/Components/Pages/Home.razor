@@ -1,0 +1,17 @@
+﻿@page "/"
+@using Berlin.Infrastructure.Services
+
+@rendermode InteractiveServer
+
+@inject ITestService testService
+
+<PageTitle>Home</PageTitle>
+
+Welcome to your new app.
+
+@code{
+    protected override void OnInitialized()
+    {
+     //   testService.GenerateData();   
+    }
+}

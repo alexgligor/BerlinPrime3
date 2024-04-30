@@ -1,0 +1,392 @@
+﻿@page "/divisionconfig"
+@using BerlinUI4.HelpClasses
+@using BerlinUI4.Components.Pages.ConfiguratorPage
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IGenericService<Division> serviceDivision
+@inject IGenericService<ServiceType> serviceServiceType
+@inject IGenericService<Service> serviceService
+@using System.IO
+@inject IWebHostEnvironment Environment
+
+
+<h3>Departamente</h3>
+@{
+    var i = 0;
+}
+@foreach (var usernode in Nodes)
+{
+    i++;
+    var panelsStayOpen = "panelsStayOpen-collapseOne" + i;
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button @onclick="()=>NodeClick(usernode)" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#@panelsStayOpen" aria-expanded="true" aria-controls="@panelsStayOpen">
+                @usernode.Item.Title
+                @if (usernode.isOpen)
+                {
+                    <p class="card-text"><small class="text-muted m-2">Ultima modificare @usernode.Item.UpdateDate.ToString()</small></p>
+                }
+            </button>
+
+        </h2>
+        <div id="@panelsStayOpen" class="@(usernode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+
+            <div class="card-body">
+                <EditForm Model="@usernode.Item">
+                    <DataAnnotationsValidator />
+                    <ValidationMessage For="@(() => usernode.Item.Title)" class="text-danger" />
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Nume</span>
+                        </div>
+                        <InputText class="form-control" @bind-Value="usernode.Item.Title" />
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Descriere</span>
+                        </div>
+                        <InputText class="form-control" @bind-Value="usernode.Item.Description" />
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center form-check mb-3">
+                        <div>
+                            <InputCheckbox id="deleteCheck" class="form-check-input" @bind-Value="usernode.Item.IsDeleted" />
+                            <label class="form-check-label" for="deleteCheck">Șters</label>
+                        </div>
+                        <button type="submit" class="btn btn-success" @onclick="()=>HandleValidSubmit(usernode)">Salvează</button>
+                    </div>
+                </EditForm>
+
+                <p><strong>Tipuri de servicii</strong></p>
+
+                @{
+                    var j = 0;
+                }
+                @foreach (var node in usernode.Item.ServiceTypes)
+                {
+                    j++;
+                    panelsStayOpen = $"panelsStayOpen-collapseOnez {j} {i}";
+                    var synode = STNodes.Find(x => x.Item.Id == node.Id);
+
+                    if (synode == null)
+                    {
+                        synode = new ConfiguratorNode<ServiceType>(node);
+
+                        STNodes.Add(synode);
+                    }
+
+                    <div class="accordion-item  ">
+                        <h2 class="accordion-header">
+                            <button @onclick="()=>NodeClick(synode)" class="accordion-button bg-black bg-opacity-25" type="button" data-bs-toggle="collapse" data-bs-target="#@panelsStayOpen" aria-expanded="true" aria-controls="@panelsStayOpen">
+                                @synode.Item.Title
+                                @if (synode.isOpen)
+                                {
+                                    <p class="card-text"><small class="text-muted m-2">Ultima modificare @synode.Item.UpdateDate.ToString()</small></p>
+                                }
+                            </button>
+                        </h2>
+                        <div id="@panelsStayOpen" class="@(synode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+
+                            <div class="card-body">
+                                <EditForm Model="@usernode.Item">
+                                    <DataAnnotationsValidator />
+                                    <ValidationMessage For="@(() => synode.Item.Title)" class="text-danger" />
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Nume</span>
+                                        </div>
+                                        <InputText class="form-control" @bind-Value="synode.Item.Title" />
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Descriere</span>
+                                        </div>
+                                        <InputText class="form-control" @bind-Value="synode.Item.Description" />
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center form-check mb-3">
+                                        <div>
+                                            <InputCheckbox id="deleteCheck" class="form-check-input" @bind-Value="synode.Item.IsDeleted" />
+                                            <label class="form-check-label" for="deleteCheck">Șters</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-success" @onclick="()=>HandleValidSubmit(synode)">Salvează</button>
+                                    </div>
+                                </EditForm>
+
+                                <p><strong>Servicii</strong></p>
+
+                                @{
+                                    var k = 0;
+                                }
+                                @foreach (var snode in node.Services)
+                                {
+                                    k++;
+                                    panelsStayOpen =  $"panelsStayOpen-collapseOnez {j} {i} {k}";
+                                    var ksnode = SNodes.Find(x => x.Item.Id == snode.Id);
+
+                                    if (ksnode == null)
+                                    {
+                                        ksnode = new ConfiguratorNode<Service>(snode);
+
+                                        SNodes.Add(ksnode);
+                                    }
+
+                                    <div class="accordion-item  ">
+                                        <h2 class="accordion-header">
+                                            <button @onclick="()=>NodeClick(ksnode)" class="accordion-button bg-success bg-opacity-25" type="button" data-bs-toggle="collapse" data-bs-target="#@panelsStayOpen" aria-expanded="true" aria-controls="@panelsStayOpen">
+
+                                                <img src="@(string.IsNullOrEmpty(ksnode.Item.ImageUrl) ? "https://github.com/mdo.png" : ksnode.Item.ImageUrl)" alt="RON" style="height: 50hx; width: 50px; margin-right: 15px;">
+                                                @ksnode.Item.Title
+                                                @if (ksnode.isOpen)
+                                                {
+                                                    <p class="card-text"><small class="text-muted m-2">Ultima modificare @ksnode.Item.UpdateDate.ToString()</small></p>
+                                                }
+                                            </button>
+                                        </h2>
+                                        <div id="@panelsStayOpen" class="@(ksnode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+
+                                            <div class="card-body">
+                                                <EditForm Model="@ksnode.Item">
+                                                    <DataAnnotationsValidator />
+                                                    <ValidationMessage For="@(() => ksnode.Item.Title)" class="text-danger" />
+                                                    <div class="input-group mb-3">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">Nume</span>
+                                                        </div>
+                                                        <InputText class="form-control" @bind-Value="ksnode.Item.Title" />
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">Descriere</span>
+                                                        </div>
+                                                        <InputText class="form-control" @bind-Value="ksnode.Item.Description" />
+                                                    </div>
+                                                    <div class="input-group mb-3">
+                                                        <label class="btn btn-link">
+                                                            Schimbă imaginea
+                                                            <InputFile OnChange="e => LoadFiles(e, ksnode)" multiple style="display:none;" />
+                                                        </label>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">Pret</span>
+                                                        </div>
+                                                        <InputNumber class="form-control" @bind-Value="ksnode.Item.Price" />
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">RON</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center form-check mb-3">
+                                                        <div>
+                                                            <InputCheckbox id="deleteCheck" class="form-check-input" @bind-Value="ksnode.Item.IsDeleted" />
+                                                            <label class="form-check-label" for="deleteCheck">Șters</label>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-success" @onclick="()=>HandleValidSubmit(ksnode)">Salvează</button>
+                                                    </div>
+                                                </EditForm>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-info" @onclick="()=>NodeClick(snewNode)" type="button" data-bs-toggle="collapse" data-bs-target="#newuser" aria-expanded="true" aria-controls="newuser">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-plus-square-dotted" viewBox="0 0 16 16">
+                                                <path d="M2.5 0q-.25 0-.487.048l.194.98A1.5 1.5 0 0 1 2.5 1h.458V0zm2.292 0h-.917v1h.917zm1.833 0h-.917v1h.917zm1.833 0h-.916v1h.916zm1.834 0h-.917v1h.917zm1.833 0h-.917v1h.917zM13.5 0h-.458v1h.458q.151 0 .293.029l.194-.981A2.5 2.5 0 0 0 13.5 0m2.079 1.11a2.5 2.5 0 0 0-.69-.689l-.556.831q.248.167.415.415l.83-.556zM1.11.421a2.5 2.5 0 0 0-.689.69l.831.556c.11-.164.251-.305.415-.415zM16 2.5q0-.25-.048-.487l-.98.194q.027.141.028.293v.458h1zM.048 2.013A2.5 2.5 0 0 0 0 2.5v.458h1V2.5q0-.151.029-.293zM0 3.875v.917h1v-.917zm16 .917v-.917h-1v.917zM0 5.708v.917h1v-.917zm16 .917v-.917h-1v.917zM0 7.542v.916h1v-.916zm15 .916h1v-.916h-1zM0 9.375v.917h1v-.917zm16 .917v-.917h-1v.917zm-16 .916v.917h1v-.917zm16 .917v-.917h-1v.917zm-16 .917v.458q0 .25.048.487l.98-.194A1.5 1.5 0 0 1 1 13.5v-.458zm16 .458v-.458h-1v.458q0 .151-.029.293l.981.194Q16 13.75 16 13.5M.421 14.89c.183.272.417.506.69.689l.556-.831a1.5 1.5 0 0 1-.415-.415zm14.469.689c.272-.183.506-.417.689-.69l-.831-.556c-.11.164-.251.305-.415.415l.556.83zm-12.877.373Q2.25 16 2.5 16h.458v-1H2.5q-.151 0-.293-.029zM13.5 16q.25 0 .487-.048l-.194-.98A1.5 1.5 0 0 1 13.5 15h-.458v1zm-9.625 0h.917v-1h-.917zm1.833 0h.917v-1h-.917zm1.834-1v1h.916v-1zm1.833 1h.917v-1h-.917zm1.833 0h.917v-1h-.917zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z" />
+                                            </svg>
+                                        </button>
+                                    </h2>
+                                    <div id="new" class="@(snewNode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+                                        <div class="card-body">
+                                            <EditForm Model="@snewNode.Item">
+                                                <DataAnnotationsValidator />
+                                                <div class="form-group p-2">
+                                                    <label for="titlest">Nume:</label>
+                                                    <InputText id="titlest" class="form-control" @bind-Value="snewNode.Item.Title" />
+                                                    <ValidationMessage For="@(() => snewNode.Item.Title)" class="text-danger" />
+                                                    <label for="descriptionst">Descriere:</label>
+                                                    <InputText id="descriptionst" class="form-control" @bind-Value="snewNode.Item.Description" />
+                                                    
+                                                        <label for="ss">Pret(RON):</label>
+                                                        <InputNumber id="ss"  class="form-control" @bind-Value="snewNode.Item.Price" />
+                                                    
+                                                </div>
+                                                <button type="submit" class="btn btn-info" @onclick="()=>HandleNewServiceSubmit(snewNode.Item,node)">Salvează</button>
+                                            </EditForm>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                }
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button bg-info" @onclick="()=>NodeClick(stnewNode)" type="button" data-bs-toggle="collapse" data-bs-target="#newuser" aria-expanded="true" aria-controls="newuser">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-plus-square-dotted" viewBox="0 0 16 16">
+                                <path d="M2.5 0q-.25 0-.487.048l.194.98A1.5 1.5 0 0 1 2.5 1h.458V0zm2.292 0h-.917v1h.917zm1.833 0h-.917v1h.917zm1.833 0h-.916v1h.916zm1.834 0h-.917v1h.917zm1.833 0h-.917v1h.917zM13.5 0h-.458v1h.458q.151 0 .293.029l.194-.981A2.5 2.5 0 0 0 13.5 0m2.079 1.11a2.5 2.5 0 0 0-.69-.689l-.556.831q.248.167.415.415l.83-.556zM1.11.421a2.5 2.5 0 0 0-.689.69l.831.556c.11-.164.251-.305.415-.415zM16 2.5q0-.25-.048-.487l-.98.194q.027.141.028.293v.458h1zM.048 2.013A2.5 2.5 0 0 0 0 2.5v.458h1V2.5q0-.151.029-.293zM0 3.875v.917h1v-.917zm16 .917v-.917h-1v.917zM0 5.708v.917h1v-.917zm16 .917v-.917h-1v.917zM0 7.542v.916h1v-.916zm15 .916h1v-.916h-1zM0 9.375v.917h1v-.917zm16 .917v-.917h-1v.917zm-16 .916v.917h1v-.917zm16 .917v-.917h-1v.917zm-16 .917v.458q0 .25.048.487l.98-.194A1.5 1.5 0 0 1 1 13.5v-.458zm16 .458v-.458h-1v.458q0 .151-.029.293l.981.194Q16 13.75 16 13.5M.421 14.89c.183.272.417.506.69.689l.556-.831a1.5 1.5 0 0 1-.415-.415zm14.469.689c.272-.183.506-.417.689-.69l-.831-.556c-.11.164-.251.305-.415.415l.556.83zm-12.877.373Q2.25 16 2.5 16h.458v-1H2.5q-.151 0-.293-.029zM13.5 16q.25 0 .487-.048l-.194-.98A1.5 1.5 0 0 1 13.5 15h-.458v1zm-9.625 0h.917v-1h-.917zm1.833 0h.917v-1h-.917zm1.834-1v1h.916v-1zm1.833 1h.917v-1h-.917zm1.833 0h.917v-1h-.917zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z" />
+                            </svg>
+                        </button>
+                    </h2>
+                    <div id="new" class="@(stnewNode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+                        <div class="card-body">
+                            <EditForm Model="@stnewNode.Item">
+                                <DataAnnotationsValidator />
+                                <div class="form-group p-2">
+                                    <label for="titles">Nume:</label>
+                                    <InputText id="titles" class="form-control" @bind-Value="stnewNode.Item.Title" />
+                                    <ValidationMessage For="@(() => stnewNode.Item.Title)" class="text-danger" />
+                                    <label for="descriptions">Descriere:</label>
+                                    <InputText id="descriptions" class="form-control" @bind-Value="stnewNode.Item.Description" />
+                                </div>
+                                <button type="submit" class="btn btn-info" @onclick="()=>HandleNewServiceTypeSubmit(stnewNode.Item,usernode.Item)">Salvează</button>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+
+}
+
+<div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button bg-info" @onclick="()=>NodeClick(newNode)" type="button" data-bs-toggle="collapse" data-bs-target="#newuser" aria-expanded="true" aria-controls="newuser">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-plus-square-dotted" viewBox="0 0 16 16">
+                <path d="M2.5 0q-.25 0-.487.048l.194.98A1.5 1.5 0 0 1 2.5 1h.458V0zm2.292 0h-.917v1h.917zm1.833 0h-.917v1h.917zm1.833 0h-.916v1h.916zm1.834 0h-.917v1h.917zm1.833 0h-.917v1h.917zM13.5 0h-.458v1h.458q.151 0 .293.029l.194-.981A2.5 2.5 0 0 0 13.5 0m2.079 1.11a2.5 2.5 0 0 0-.69-.689l-.556.831q.248.167.415.415l.83-.556zM1.11.421a2.5 2.5 0 0 0-.689.69l.831.556c.11-.164.251-.305.415-.415zM16 2.5q0-.25-.048-.487l-.98.194q.027.141.028.293v.458h1zM.048 2.013A2.5 2.5 0 0 0 0 2.5v.458h1V2.5q0-.151.029-.293zM0 3.875v.917h1v-.917zm16 .917v-.917h-1v.917zM0 5.708v.917h1v-.917zm16 .917v-.917h-1v.917zM0 7.542v.916h1v-.916zm15 .916h1v-.916h-1zM0 9.375v.917h1v-.917zm16 .917v-.917h-1v.917zm-16 .916v.917h1v-.917zm16 .917v-.917h-1v.917zm-16 .917v.458q0 .25.048.487l.98-.194A1.5 1.5 0 0 1 1 13.5v-.458zm16 .458v-.458h-1v.458q0 .151-.029.293l.981.194Q16 13.75 16 13.5M.421 14.89c.183.272.417.506.69.689l.556-.831a1.5 1.5 0 0 1-.415-.415zm14.469.689c.272-.183.506-.417.689-.69l-.831-.556c-.11.164-.251.305-.415.415l.556.83zm-12.877.373Q2.25 16 2.5 16h.458v-1H2.5q-.151 0-.293-.029zM13.5 16q.25 0 .487-.048l-.194-.98A1.5 1.5 0 0 1 13.5 15h-.458v1zm-9.625 0h.917v-1h-.917zm1.833 0h.917v-1h-.917zm1.834-1v1h.916v-1zm1.833 1h.917v-1h-.917zm1.833 0h.917v-1h-.917zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z" />
+            </svg>
+        </button>
+    </h2>
+    <div id="newuser" class="@(newNode.isOpen ? "accordion-collapse collapse show" : "accordion-collapse collapse")">
+        <div class="card-body">
+            <EditForm Model="@newNode.Item">
+                <DataAnnotationsValidator />
+                <div class="form-group p-2">
+                    <label for="title">Nume:</label>
+                    <InputText id="title" class="form-control" @bind-Value="newNode.Item.Title" />
+                    <ValidationMessage For="@(() => newNode.Item.Title)" class="text-danger" />
+                    <label for="description">Descriere:</label>
+                    <InputText id="description" class="form-control" @bind-Value="newNode.Item.Description" />
+                </div>
+                <button type="submit" class="btn btn-info" @onclick="()=>HandleNewDivisionSubmit(newNode.Item)">Salvează</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    private List<ConfiguratorNode<Division>> Nodes = new List<ConfiguratorNode<Division>>();
+    private ConfiguratorNode<Division> newNode = new ConfiguratorNode<Division>(new Division());
+    private List<ConfiguratorNode<ServiceType>> STNodes = new List<ConfiguratorNode<ServiceType>>();
+    private ConfiguratorNode<ServiceType> stnewNode = new ConfiguratorNode<ServiceType>(new ServiceType());
+    private List<ConfiguratorNode<Service>> SNodes = new List<ConfiguratorNode<Service>>();
+    private ConfiguratorNode<Service> snewNode = new ConfiguratorNode<Service>(new Service());
+
+    private async Task HandleValidSubmit(ConfiguratorNode<Division> cuser)
+    {
+        if (string.IsNullOrEmpty(cuser.Item.Title))
+            return;
+
+        await serviceDivision.Update(cuser.Item);
+        StateHasChanged();
+    }
+    private async Task HandleValidSubmit(ConfiguratorNode<ServiceType> cuser)
+    {
+        if (string.IsNullOrEmpty(cuser.Item.Title))
+            return;
+        await serviceServiceType.Update(cuser.Item);
+        StateHasChanged();
+    }
+    private async Task HandleValidSubmit(ConfiguratorNode<Service> cuser)
+    {
+        if (string.IsNullOrEmpty(cuser.Item.Title))
+            return;
+        await serviceService.Update(cuser.Item);
+        StateHasChanged();
+    }
+
+    private async Task HandleNewDivisionSubmit(Division item)
+    {
+        if (string.IsNullOrEmpty(item.Title))
+            return;
+        await serviceDivision.Add(item);
+        newNode = new ConfiguratorNode<Division>(new Division());
+        Nodes.Add(new ConfiguratorNode<Division>(item));
+        StateHasChanged();
+    }
+
+    private async Task HandleNewServiceTypeSubmit(ServiceType item, Division division)
+    {
+        item.Devision = division;
+        item.DevisionId = division.Id;
+        if (string.IsNullOrEmpty(item.Title))
+            return;
+        await serviceServiceType.Add(item);
+        stnewNode = new ConfiguratorNode<ServiceType>(new ServiceType());
+        STNodes.Add(new ConfiguratorNode<ServiceType>(item));
+        StateHasChanged();
+    }
+
+    private async Task HandleNewServiceSubmit(Service item, ServiceType sType)
+    {
+        item.ServiceType = sType;
+        item.ServiceTypeId = sType.Id;
+        if (string.IsNullOrEmpty(item.Title))
+            return;
+        await serviceService.Add(item);
+        var mod = new ConfiguratorNode<Service>(item);
+        snewNode = new ConfiguratorNode<Service>(new Service());
+        SNodes.Add(mod);
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var users = await serviceDivision.GetAll(d => d.ServiceTypes);
+        foreach (var u in users)
+            Nodes.Add(new ConfiguratorNode<Division>(u));
+    }
+
+    private async void NodeClick<T>(ConfiguratorNode<T> userNode)
+    {
+        userNode.isOpen = !userNode.isOpen;
+        if(userNode.Item is ServiceType)
+        {
+            var serT = userNode.Item as ServiceType;
+            if(serT.Services.Count == 0)
+            {
+                serT.Services = await serviceService.FindAll(s => s.ServiceTypeId == serT.Id);
+            }
+        }
+
+        if (userNode.Item is Division && !userNode.isOpen)
+            Thread.Sleep(500);
+
+
+        StateHasChanged();
+
+    }
+
+    private async Task LoadFiles(InputFileChangeEventArgs e, ConfiguratorNode<Service> serviceNode)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            // Ensure the folder exists
+            var uploads = Path.Combine(Environment.WebRootPath, "services");
+            Directory.CreateDirectory(uploads);
+            // Save the file
+            var filePath = Path.Combine(uploads, file.Name);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.OpenReadStream().CopyToAsync(stream);
+            }
+
+            serviceNode.Item.ImageUrl = $"services/{file.Name}";
+
+            await serviceService.Update(serviceNode.Item);
+            StateHasChanged();
+        }
+    }
+
+}

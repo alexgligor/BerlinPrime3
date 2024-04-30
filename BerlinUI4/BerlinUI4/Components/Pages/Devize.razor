@@ -1,0 +1,67 @@
+﻿@page "/devize/{stringSiteId}"
+
+@layout EmptyLayout
+@inject IJSRuntime JSRuntime
+@inject IGenericService<Receipt> serviceReceipt
+@rendermode InteractiveServer
+
+<div class="m-3 p-3">
+    <button class="btn btn-primary" @onclick="GoBack">Înapoi</button>
+    <div class="row overflow-auto m-5 p-5">
+    @if (Receipts != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nume</th>
+                    <th>Creat</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int i = 0;
+                    float total = 0;
+                }
+                @foreach (var item in Receipts)
+                {
+                    i++;
+                    <tr>
+                        <th>@i</th>
+                        <th>@item.Title</th>
+                        <th>@item.CreateDate</th>
+                            <th><button class="btn btn-info" @onclick="()=>LoadDeviz(item.Id)">Încarcă</button></th>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    }
+   
+</div>
+</div>
+
+@code {    
+    [Parameter]
+    public string stringSiteId { get; set; }
+
+    public List<Receipt> Receipts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var SiteId = int.Parse(stringSiteId);
+
+        Receipts = await serviceReceipt.FindAll(r => r.SiteId == SiteId);
+    }
+
+    private async Task GoBack()
+    {
+       await JSRuntime.InvokeVoidAsync("window.history.back");
+    }
+
+    private async Task LoadDeviz(int receiptId)
+    {
+        await JSRuntime.InvokeVoidAsync("window.history.back");
+    }
+}

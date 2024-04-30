@@ -1,0 +1,345 @@
+﻿@page "/pos/{MachineName}"
+@layout EmptyLayout
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IGenericService<Division> serviceDivision
+@inject IGenericService<Site> serviceSite
+@inject IGenericService<ServiceType> serviceServicesType
+@inject IGenericService<User> serviceUser
+@inject IGenericService<Receipt> serviceRecipt
+@inject IGenericService<SelledService> selledserviceRecipt
+@using Berlin.Infrastructure
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Pos</PageTitle>
+
+<div class="p-2 overflow-hidden" style="width: 100vw; height: 100vh; display: flex;"> 
+    <div class="row-cols-1 text-center d-flex overflow-hidden flex-column" style="width: 12.5vw;height: 100vh;" id="ServiceTypeId">
+        @if (division is null)
+        {
+            <h1>Se incarca ...</h1>
+        }
+        else
+        {
+            @if (division.ServiceTypes.Count == 0)
+            {
+                <h1>Nu sunt Servicii disponibile ..</h1>
+            }
+            else
+            {
+                @foreach (var serviceType in division.ServiceTypes)
+                {
+                    <ServiceTypeCard ServiceType="@serviceType" OnServiceTypeSelected="ClickSelectedProductType" SelectedServiceType="@selectedProductType" />
+                }
+            }
+        }
+    </div>
+
+    <div style="flex: 1 1 auto; display: flex; overflow: hidden; margin:2vh;width:70vw; ">
+        <div class="row mb-2 overflow-hidden" style="margin:2vh;" id="scrollable-div">
+            @if (selectedProductType is null)
+            {
+
+                <h1>Se incarca ...</h1>
+
+            }
+            else
+                @foreach (var prod in selectedProductType.Services)
+                {
+                    <ServiceCard Service="@prod" OnServiceSelected="ClickProduct" />
+                }
+        </div>
+
+    </div>
+
+    <div style="width: 21.5vw; height: 100vh;">
+        <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary" style="width: 380px;flex-direction: column; height: 100vh">
+            <div class="container d-flex align-items-center justify-content-center">
+                <div class="text-center">
+                  
+                    @if (user != null)
+                    {
+                        var imgUrl = string.IsNullOrEmpty(user.ImageUrl) ? "https://github.com/mdo.png" : user.ImageUrl;
+                    
+                        <img src="@imgUrl" alt="mdo" width="152" height="152" class="rounded-circle p-2" @onclick="ShowModal" style="cursor: pointer;">
+
+                        <p class="fw-bold">@user.Title</p>
+                    }
+
+                    <form class="m-1 p-2 justify-content-center" role="search">
+                        <div class="mb-3">
+                            <input type="search" @bind="detalii" class="form-control form-control-dark text-bg-dark align-content-center" placeholder="Detalii..." aria-label="Search">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div style="overflow-y: hidden;" id="SelectedItemsId">
+                @{
+                    float sum = 0;
+                }
+                @foreach (var prod in selectedServices)
+                {
+                    var subtotal = prod.Count * prod.Price;
+                    sum += subtotal;
+                    <SelledServiceCard subtotal="@subtotal" SelledService="@prod" OnSelledServiceSelected="ClickSelectedProduct" />
+                }
+                @if (selectedServices.Count != 0)
+                {
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <button class="btn btn-success w-100" style="height: 60px;" @onclick="FinishTransaction">
+                            <strong class="mb-1">Finalizează acum - @sum Lei</strong>
+                        </button>
+                    </div>
+                }
+                      </div>
+        </div>
+    </div>
+</div>
+@if (showModal)
+{
+    <div class="modal-backdrop align-content-center p-5">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-bottom-0">
+                <h1 class="modal-title fs-5">Selectare setarile curente</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" @onclick="()=>showModal=false" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer d-block">
+                <div class="modal-body py-0">
+                    <p>Selectați utilizatorul:</p>
+                </div>
+                <hr />
+                <div class="row overflow-auto" id="UsersId">
+                    @foreach (var usr in users)
+                    {
+                        if (usr.Id == user.Id)
+                            continue;
+
+                        <div class="col-md-2 d-block align-items-center justify-content-center text-center ">
+                            @if (usr != null)
+                            {
+                                var iUrl = string.IsNullOrEmpty(usr.ImageUrl) ? "https://github.com/mdo.png" : usr.ImageUrl;
+                                 
+                                <img src="@iUrl" alt="mdo" width="100" height="100" class="rounded-circle p-2" @onclick="()=>SelectUser(usr)" style="cursor: pointer;">
+
+                                <p><bold>@usr.Title</bold></p>
+                            }
+                        </div>
+                    }
+                </div>
+                @if(divisions.Count >1){
+                    <div class="modal-body py-0">
+                        <p>Selectați divizia:</p>
+                    </div>
+                    <hr />
+                    <div class="row overflow-auto" >
+                    @foreach (var usr in divisions)
+                    {
+                        if (usr.Id == division.Id)
+                            continue;
+
+                        <div class="col-md-2 d-block align-items-center justify-content-center text-center ">
+                            @if (usr != null)
+                            {
+                                <img src="Servicii.jpg" alt="mdo" width="100" height="100" class="rounded-circle p-2" @onclick="()=>SelectDivision(usr)" style="cursor: pointer;">
+
+                                <p><bold>@usr.Title</bold></p>
+                            }
+                        </div>
+                    }
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (showSuccessMessage)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.9);">
+
+        
+            <h1 style="color: white">Success</h1>
+    </div>
+}
+
+@if (showErrorMessage)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color:orange;">
+
+
+        <h1 style="color: black">Lipsesc detaliile!</h1>
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public string MachineName { get; set; }
+    private ServiceType? selectedProductType { get; set; }
+    private bool showSuccessMessage = false;
+    private bool showErrorMessage = false;
+    private Division? division { get; set; }
+    private List<Division> divisions = new List<Division>();
+    private User? user { get; set; }
+    private Site? site { get; set; }
+    private List<User> users { get; set; }
+    private string detalii = string.Empty;
+    private List<SelledService> selectedServices = new List<SelledService>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await serviceUser.GetAll();
+
+        user = Utile.GetUser(MachineName);
+        site = Utile.GetSite(MachineName);
+        if (site?.Divisions != null)
+        {
+            foreach (var su in site.Divisions)
+            {
+                if (su.Division == null)
+                {
+                    try
+                    {
+                        su.Division = await serviceDivision.Find(su.DivisionId);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine($"Eroare la încărcarea diviziei: {ex.Message}");
+                    }
+                }
+            }
+
+            divisions = site.Divisions.Select(s => s.Division).ToList();
+        }
+        division = Utile.GetDivision(MachineName);
+        await LoadServices();
+    }
+
+    async Task LoadServices()
+    {
+
+        division = await serviceDivision.LoadRelations(division.Id);
+
+        selectedProductType = division.ServiceTypes.FirstOrDefault();
+
+        if (selectedProductType == null)
+            return;
+        await LoadSelectedServiceType(selectedProductType);
+    }
+
+    async Task FinishTransaction()
+    {
+        showErrorMessage = detalii.Equals(String.Empty);
+        if (showErrorMessage)
+        {
+            showErrorMessage = true;
+            StateHasChanged(); // Actualizează UI-ul
+
+            await Task.Delay(2000); // Așteaptă 3 secunde
+
+            showErrorMessage = false;
+            StateHasChanged(); // A
+            return;
+        }
+
+        var receipt = new Receipt() { Title = detalii, Site = site, Description = user.Title};
+        await serviceRecipt.Add(receipt);
+
+        foreach (var serv in selectedServices)
+        {
+            serv.Receipt = receipt;
+            serv.Title = detalii;
+            await selledserviceRecipt.Add(serv);
+        }
+
+        await PerformOperationAsync();
+        NavigationManager.NavigateTo($"/userselect/{MachineName}", forceLoad: true);
+
+    }
+
+    async Task PerformOperationAsync()
+    {
+    
+        // Logica operației
+        showSuccessMessage = true;
+        StateHasChanged(); // Actualizează UI-ul
+
+        await Task.Delay(4000); // Așteaptă 3 secunde
+
+        showSuccessMessage = false;
+        StateHasChanged(); // Actualizează UI-ul din nou pentru a ascunde mesajul
+    }
+
+    async Task LoadSelectedServiceType(ServiceType serviceType)
+    {
+        selectedProductType = serviceType;
+        if (selectedProductType.Services.Count == 0)
+            selectedProductType = await serviceServicesType.LoadRelations(selectedProductType.Id);
+    }
+
+    void ClickProduct(Service articol)
+    {
+        var find = selectedServices.Find(a => a.ServiceId == articol.Id && a.UserId == user.Id);
+        if (find != null)
+        {
+            find.Count++;
+
+        }
+        else
+        {
+            var ss = new SelledService();
+            ss.Load(user, articol);
+            selectedServices.Add(ss);
+        }
+
+        StateHasChanged();
+    }
+    void ClickSelectedProduct(SelledService articol)
+    {
+        articol.Count--;
+        if (articol.Count == 0)
+            selectedServices.Remove(articol);
+        StateHasChanged();
+    }
+    async void ClickSelectedProductType(ServiceType productType)
+    {
+        await LoadSelectedServiceType(productType);
+        StateHasChanged();
+    }
+
+    async void SelectUser(User _user)
+    {
+        user = _user;
+        showModal = false;
+        StateHasChanged();
+    }
+
+    async void SelectDivision(Division _division)
+    {
+        division = _division;
+        showModal = false;
+        await LoadServices();
+        StateHasChanged();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("enableDragScroll", "scrollable-div");
+            await JSRuntime.InvokeVoidAsync("enableDragScroll", "SelectedItemsId");
+            await JSRuntime.InvokeVoidAsync("enableDragScroll", "ServiceTypeId");
+
+        }
+    }
+
+    private bool showModal = false;
+
+    private void ShowModal()
+    {
+        showModal = true;
+    }
+
+}

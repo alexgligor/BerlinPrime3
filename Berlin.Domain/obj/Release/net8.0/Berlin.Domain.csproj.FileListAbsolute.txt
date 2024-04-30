@@ -1,0 +1,11 @@
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\bin\Release\net8.0\Berlin.Domain.deps.json
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\bin\Release\net8.0\Berlin.Domain.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\bin\Release\net8.0\Berlin.Domain.pdb
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\Berlin.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\Berlin.Domain.AssemblyInfoInputs.cache
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\Berlin.Domain.AssemblyInfo.cs
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\Berlin.Domain.csproj.CoreCompileInputs.cache
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\Berlin.Domain.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\refint\Berlin.Domain.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\Berlin.Domain.pdb
+C:\Program Files\0_Work\NewBerlin\Berlin.Domain\obj\Release\net8.0\ref\Berlin.Domain.dll

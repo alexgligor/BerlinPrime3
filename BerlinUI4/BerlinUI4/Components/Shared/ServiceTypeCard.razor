@@ -1,0 +1,22 @@
+﻿@if (SelectedServiceType != null)
+{
+    if (ServiceType.Id == SelectedServiceType.Id)
+    {
+        <button class="btn m-1" style="width:11vw; height:10vh;">@ServiceType.Title</button>
+    }
+    else
+    {
+        <button class="btn btn-primary m-1" style="width:11vw; height:10vh;" @onclick="() => OnServiceTypeSelected.InvokeAsync(ServiceType)">@ServiceType.Title</button>
+
+    }
+}
+@code {
+    [Parameter]
+    public ServiceType ServiceType { get; set; }
+
+    [Parameter]
+    public EventCallback<ServiceType> OnServiceTypeSelected { get; set; }
+
+    [Parameter]
+    public ServiceType SelectedServiceType { get; set; }
+}

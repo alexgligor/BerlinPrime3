@@ -1,0 +1,15 @@
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\bin\Release\net8.0\Berlin.Application.deps.json
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\bin\Release\net8.0\Berlin.Application.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\bin\Release\net8.0\Berlin.Application.pdb
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\bin\Release\net8.0\Berlin.Domain.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\bin\Release\net8.0\Berlin.Domain.pdb
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.csproj.AssemblyReference.cache
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.AssemblyInfoInputs.cache
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.AssemblyInfo.cs
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.csproj.CoreCompileInputs.cache
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.csproj.CopyComplete
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\refint\Berlin.Application.dll
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\Berlin.Application.pdb
+C:\Program Files\0_Work\NewBerlin\Berlin.Application\obj\Release\net8.0\ref\Berlin.Application.dll

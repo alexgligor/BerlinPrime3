@@ -1,0 +1,28 @@
+﻿@page "/test"
+@using System.IO
+@inject IWebHostEnvironment Environment
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+
+<InputFile OnChange="LoadFiles" multiple />
+
+@code {
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+                // Ensure the folder exists
+            var uploads = Path.Combine(Environment.WebRootPath, "uploads");
+            Directory.CreateDirectory(uploads);
+            // Save the file
+            var filePath = Path.Combine(uploads, file.Name);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.OpenReadStream().CopyToAsync(stream);
+            }
+
+            var imageUrl = $"uploads/{file.Name}";
+        }
+    }
+}

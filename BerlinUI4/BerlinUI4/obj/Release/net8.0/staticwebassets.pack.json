@@ -1,0 +1,53 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\obj\\Release\\net8.0\\scopedcss\\projectbundle\\BerlinUI4.bundle.scp.css",
+      "PackagePath": "staticwebassets\\BerlinUI4.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\Servicii.jpg",
+      "PackagePath": "staticwebassets\\Servicii.jpg"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\app.css",
+      "PackagePath": "staticwebassets\\app.css"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\js\\drag-scroll.js",
+      "PackagePath": "staticwebassets\\js\\drag-scroll.js"
+    },
+    {
+      "Id": "C:\\Program Files\\0_Work\\NewBerlin\\BerlinUI4\\BerlinUI4\\wwwroot\\reparatii_sistem_franare.jpg",
+      "PackagePath": "staticwebassets\\reparatii_sistem_franare.jpg"
+    },
+    {
+      "Id": "obj\\Release\\net8.0\\staticwebassets\\msbuild.BerlinUI4.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Release\\net8.0\\staticwebassets\\msbuild.build.BerlinUI4.props",
+      "PackagePath": "build\\BerlinUI4.props"
+    },
+    {
+      "Id": "obj\\Release\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.BerlinUI4.props",
+      "PackagePath": "buildMultiTargeting\\BerlinUI4.props"
+    },
+    {
+      "Id": "obj\\Release\\net8.0\\staticwebassets\\msbuild.buildTransitive.BerlinUI4.props",
+      "PackagePath": "buildTransitive\\BerlinUI4.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
