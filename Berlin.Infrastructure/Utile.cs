@@ -29,6 +29,25 @@ namespace Berlin.Infrastructure
             SessonData.Add(device, new EnvObj() { Division = item });
         }
 
+        static public void SetReceiptData(Receipt item, String device)
+        {
+            if (SessonData.ContainsKey(device))
+            {
+                SessonData[device].Receipt = item;
+                return;
+            }
+
+            SessonData.Add(device, new EnvObj() { Receipt = item });
+        }
+        static public void RemoveReceiptData( String device)
+        {
+            if (SessonData.ContainsKey(device))
+            {
+                SessonData[device].Receipt = null;
+                return;
+            }
+        }
+
         static public void SetSessionData(Site item, String device)
         {
             if (SessonData.ContainsKey(device))
@@ -53,6 +72,10 @@ namespace Berlin.Infrastructure
         {
             return SessonData[device].User;
         }
+        static public Receipt GetReceipt(String device)
+        {
+            return SessonData[device].Receipt;
+        }
     }
 
     public class EnvObj
@@ -60,5 +83,7 @@ namespace Berlin.Infrastructure
         public Site Site { get; set; }
         public User User { get; set; }
         public Division Division { get; set; }
+
+        public Receipt Receipt { get; set; }
     }
 }

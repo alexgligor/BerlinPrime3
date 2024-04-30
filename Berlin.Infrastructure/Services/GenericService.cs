@@ -29,6 +29,23 @@ namespace Berlin.Infrastructure.Services
         {
             return await _db.Set<TEntity>().ToListAsync();
         }
+        public async Task<TEntity> Get(int id, params Expression<Func<TEntity, object>>[] includeProperties)
+        {
+            IQueryable<TEntity> query = _db.Set<TEntity>();
+
+            query = query.Where(a=>a.Id == id);
+            foreach (var includeProperty in includeProperties)
+            {
+                query = query.Include(includeProperty);
+            }
+
+
+            // Presupunând că `Id` este numele proprietății după care vrei să ordonezi
+            query = query.OrderByDescending(x => x.Id);
+
+            var list =  await query.ToListAsync();
+            return list.FirstOrDefault();
+        }
 
         public async Task<List<TEntity>> FindAll(Expression<Func<TEntity, bool>> filter = null)
         {

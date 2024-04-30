@@ -178,10 +178,12 @@
 
     [Parameter]
     public string MachineName { get; set; }
+
     private ServiceType? selectedProductType { get; set; }
     private bool showSuccessMessage = false;
     private bool showErrorMessage = false;
     private Division? division { get; set; }
+    private Receipt? receipt { get; set; }
     private List<Division> divisions = new List<Division>();
     private User? user { get; set; }
     private Site? site { get; set; }
@@ -189,14 +191,18 @@
     private string detalii = string.Empty;
     private List<SelledService> selectedServices = new List<SelledService>();
 
+
     protected override async Task OnInitializedAsync()
     {
         users = await serviceUser.GetAll();
 
         user = Utile.GetUser(MachineName);
         site = Utile.GetSite(MachineName);
-        if (site?.Divisions != null)
+        receipt = Utile.GetReceipt(MachineName);
+        if (site != null)
         {
+            if (site.Divisions == null)
+                site = await serviceSite.Get( site.Id, s => s.Divisions);
             foreach (var su in site.Divisions)
             {
                 if (su.Division == null)
@@ -216,9 +222,18 @@
         }
         division = Utile.GetDivision(MachineName);
         await LoadServices();
+
+        if (receipt != null)
+            await LoadReceipt();
+    }
+    private async Task LoadReceipt()
+    {
+        selectedServices = await selledserviceRecipt.FindAll(s => s.ReceiptId == receipt.Id, s => s.User, s => s.Service);
+        detalii = receipt.Title;
+
     }
 
-    async Task LoadServices()
+    private async Task LoadServices()
     {
 
         division = await serviceDivision.LoadRelations(division.Id);
@@ -245,16 +260,29 @@
             return;
         }
 
-        var receipt = new Receipt() { Title = detalii, Site = site, Description = user.Title};
-        await serviceRecipt.Add(receipt);
+        if (receipt == null)
+            receipt = new Receipt() { Site = site };
+
+        receipt.Title = detalii;
+        receipt.Description = user.Title;
+
+        if(receipt.Id ==0)
+            await serviceRecipt.Add(receipt);
+        else
+            await serviceRecipt.Update(receipt);
 
         foreach (var serv in selectedServices)
         {
-            serv.Receipt = receipt;
             serv.Title = detalii;
-            await selledserviceRecipt.Add(serv);
-        }
+            if (serv.ReceiptId == 0)
+            {
+                serv.Receipt = receipt;
+                await selledserviceRecipt.Add(serv);
+                continue;
+            }
 
+            await selledserviceRecipt.Update(serv);
+        }
         await PerformOperationAsync();
         NavigationManager.NavigateTo($"/userselect/{MachineName}", forceLoad: true);
 

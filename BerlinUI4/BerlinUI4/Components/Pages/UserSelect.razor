@@ -5,6 +5,7 @@
 @inject IGenericService<Site> serviceSite
 @inject IGenericService<User> serviceUser
 @inject IGenericService<Device> serviceDevice
+@inject IGenericService<Receipt> serviceReceipt
 @using Berlin.Infrastructure
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
@@ -20,9 +21,11 @@
             <div class="col-auto">
                 @if (site != null)
                 {
-                    <a href="/devize/@site.Id">
-                        <button class="btn btn-primary">Încarcă un deviz existent</button>
-                    </a>
+                    <button class="btn btn-primary" @onclick="()=>LoadRecipts(site.Id)">Încarcă un deviz existent</button>
+                }
+                @if (SelectedReceipt != null)
+                {
+                    <p>Devizul "@SelectedReceipt.Title" este selectat!</p>
                 }
             </div>
         </div>
@@ -57,8 +60,63 @@
                 }
         </div>
     </div>
-    <div>
-    </div>
+    @if (showModal)
+    {
+        <div class="modal-backdrop align-content-center p-5">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-bottom-0">
+                    <h1 class="modal-title fs-5">Selectare deviz</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" @onclick="()=>showModal=false" aria-label="Close"></button>
+                </div>
+                <div class="modal-footer d-block">
+                    <div class="row overflow-auto p-1">
+                        @if (Receipts != null)
+                        {
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Nume</th>
+                                        <th>Creat</th>
+                                        <th>Updatat</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int i = 0;
+                                        float total = 0;
+                                    }
+                                    @foreach (var item in Receipts)
+                                    {
+                                        i++;
+                                        <tr>
+                                            <th>@i</th>
+                                            <th>@item.Title</th>
+                                            <th>@item.CreateDate</th>
+                                            @{
+                                                var timeDifference = DateTime.Now - item.UpdateDate;
+                                                var updateText = $"acum ";
+                                                if (timeDifference.Hours > 0)
+                                                    updateText += $"{timeDifference.Hours} ore si ";
+                                                updateText += $"{timeDifference.Minutes} minute";
+
+                                            }
+                                            <th>@updateText</th>
+                                            <th><button class="btn btn-info" @onclick="()=>LoadDeviz(item,MachineName)">Încarcă</button></th>
+                                        </tr>
+                                    }
+
+                                </tbody>
+                            </table>
+                        }
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -66,6 +124,11 @@
     public string MachineName { get; set; }
     private Site? site { get; set; }
     private List<User> users { get; set; } = new List<User>();
+
+    public List<Receipt> Receipts;
+    public Receipt SelectedReceipt;
+
+    private bool showModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,6 +151,32 @@
 
         Utile.SetSessionData(site, MachineName);
         Utile.SetSessionData(selectedUser, MachineName);
+        if (SelectedReceipt != null)
+            Utile.SetReceiptData(SelectedReceipt, MachineName);
+        else
+            Utile.RemoveReceiptData(MachineName);
+
+
         NavigationManager.NavigateTo($"/divisionselect/{MachineName}");
     }
+
+    private async Task LoadRecipts(int siteId)
+    {
+        Receipts = await serviceReceipt.FindAll(r => r.SiteId == siteId && r.PayMethod == 0);
+        showModal = true;
+
+        StateHasChanged();
+    }
+
+
+    private async Task LoadDeviz(Receipt receipt, string machinename)
+    {
+
+        showModal = false;
+        SelectedReceipt = receipt;
+
+        StateHasChanged();
+    }
+
+
 }

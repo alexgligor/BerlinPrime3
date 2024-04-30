@@ -90,5 +90,10 @@ namespace Berlin.Infrastructure.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<GenericArticle> Get(int id, params Expression<Func<GenericArticle, object>>[] includeProperties)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
