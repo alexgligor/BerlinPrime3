@@ -4,6 +4,7 @@ using Berlin.Infrastructure;
 using Berlin.Application;
 using Berlin.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<SqlDbContext>(options => options.UseSqlServer(buil
 
 builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
+QuestPDF.Settings.License = LicenseType.Community;
 
 
 var app = builder.Build();

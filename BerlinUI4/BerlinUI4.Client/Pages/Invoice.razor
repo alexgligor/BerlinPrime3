@@ -1,0 +1,49 @@
+﻿@page "/invoice"
+
+@using Berlin.Application.Invoice
+@using Berlin.Domain
+<h3>Invoice</h3>
+
+@inject IJSRuntime JSRuntime
+
+
+@using QuestPDF.Fluent;
+@using QuestPDF.Helpers
+
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+
+<iframe id="pdfIframe" width="80%" height="800px"></iframe>
+<button class="btn btn-primary" @onclick="HandlePdf">Generate</button>
+<script>
+    function saveAndLoadPdf(pdfBytes) {
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        // // For downloading the PDF
+        // const link = document.createElement('a');
+        // link.href = url;
+        // link.download = 'downloaded.pdf';
+        // link.click();
+
+        // Set the iframe source to the same URL
+        document.getElementById('pdfIframe').src = url;
+    }
+</script>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+
+    private async Task HandlePdf()
+    {
+        var pdfData = DocumentGenerator.Invoice();
+
+        await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData);
+        StateHasChanged();
+       
+    }
+}
