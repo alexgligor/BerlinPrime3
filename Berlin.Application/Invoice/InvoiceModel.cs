@@ -1,4 +1,6 @@
-﻿namespace Berlin.Application.Invoice
+﻿using Berlin.Domain.Entities;
+
+namespace Berlin.Application.Invoice
 {
     public class InvoiceModel
     {
@@ -9,7 +11,8 @@
         public CompanyDetails SellerAddress { get; set; }
         public CompanyDetails CustomerAddress { get; set; }
 
-        public List<OrderItem> Items { get; set; }
+        public List<SelledService> Items { get; set; }
+        public Receipt Receipt { get; set; }
         public string Comments { get; set; }
     }
 
@@ -28,7 +31,7 @@
         public string CIF { get; set; }
         public string Bank { get; set; }
         public string IBAN { get; set; }
-        public object Email { get; set; }
+        public string Email { get; set; }
         public string Phone { get; set; }
         public string SocialCapital { get; set; }
         public string Delegate { get; set; }

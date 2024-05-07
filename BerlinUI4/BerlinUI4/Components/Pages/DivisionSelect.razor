@@ -1,6 +1,7 @@
 ﻿@page "/divisionselect/{MachineName}"
 @layout EmptyLayout
 @rendermode InteractiveServer
+@attribute [StreamRendering]
 @inject IGenericService<Division> serviceDivision
 @using Berlin.Infrastructure
 @inject NavigationManager NavigationManager
@@ -16,14 +17,18 @@
         }
         else
         {
+            int i = 1;
             @foreach (var item in divisions)
             {
+                i++;
                 <div class="col-md-2 d-block align-items-center justify-content-center text-center">
                     @if (item != null)
                     {
-                        <img src="Servicii.jpg" alt="mdo" width="150" height="150" class="rounded-circle p-2" @onclick="() => Select(item)">
-                        <div class="strong">@item.Title</div>
-                        @* <small>@item.Description</small> *@
+                        <div>
+                            <img id="@i" src="Servicii.jpg" alt="mdo" width="150" height="150" class="rounded-circle p-2" @onclick="() => Select(item)">
+                            <div class="strong">@item.Title</div>
+                            @* <small>@item.Description</small> *@
+                        </div>
                     }
                 </div>
             }
@@ -45,23 +50,30 @@
 
         if (site?.Divisions != null)
         {
+            divisions = new List<Division>();
+
             foreach (var su in site.Divisions)
             {
-                if (su.Division == null)
+                try
                 {
-                    try
+                    if (su.Division == null)
                     {
                         su.Division = await serviceDivision.Find(su.DivisionId);
                     }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine($"Eroare la încărcarea diviziei: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Eroare la încărcarea diviziei: {ex.Message}");
+                }
+
+                // Ensure that null divisions are handled safely
+                if (su.Division != null)
+                {
+                    divisions.Add(su.Division);
                 }
             }
-
-            divisions = site.Divisions.Select(s => s.Division).ToList();
         }
+
     }
 
     void Select(Division selected)

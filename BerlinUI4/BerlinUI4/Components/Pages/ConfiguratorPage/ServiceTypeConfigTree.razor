@@ -153,6 +153,11 @@
                                                             <span class="input-group-text">Descriere</span>
                                                         </div>
                                                         <InputText class="form-control" @bind-Value="ksnode.Item.Description" />
+
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">Unitate de masură</span>
+                                                        </div>
+                                                        <InputText class="form-control" @bind-Value="ksnode.Item.UM" />
                                                     </div>
                                                     <div class="input-group mb-3">
                                                         <label class="btn btn-link">
@@ -201,7 +206,9 @@
                                                     
                                                         <label for="ss">Pret(RON):</label>
                                                         <InputNumber id="ss"  class="form-control" @bind-Value="snewNode.Item.Price" />
-                                                    
+                                                    <label for="UM">Unitate de măsură:</label>
+                                                    <InputText id="UM" class="form-control" @bind-Value="snewNode.Item.UM" />
+
                                                 </div>
                                                 <button type="submit" class="btn btn-info" @onclick="()=>HandleNewServiceSubmit(snewNode.Item,node)">Salvează</button>
                                             </EditForm>

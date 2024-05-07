@@ -24,6 +24,7 @@ namespace Berlin.Infrastructure.Services
         public DbSet<Device> Devices{ get; set; }
         public DbSet<Site> Sites{ get; set; }
         public DbSet<User> Users{ get; set; }
+        public DbSet<Bill> Bills{ get; set; }
         public DbSet<SelledService> SelledServices { get; set; }
 
 

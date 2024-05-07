@@ -285,6 +285,8 @@
         }
         await PerformOperationAsync();
         NavigationManager.NavigateTo($"/userselect/{MachineName}", forceLoad: true);
+        receipt = null;
+        Utile.Clear();
 
     }
 

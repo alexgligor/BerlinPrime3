@@ -1,4 +1,5 @@
 ﻿@page "/reception/{MachineName}"
+@using Berlin.Application.Invoice
 @using Berlin.Infrastructure
 @using Berlin.Domain.Entities.Enums
 @attribute [StreamRendering]
@@ -132,9 +133,31 @@ else
                             <option value="3">🏦</option>
                             <option value="4">🔄</option>
                         </select>
-                        <button class="m-1 btn btn-primary"> Deviz</button>
-                        <button class="m-1 btn btn-danger"> Factura</button>
+                        <button class="m-1 btn btn-primary" @onclick="()=>HandleDeviz(currentReceiptSelledSerices, currentReceipt)"> Deviz</button>
+                        <button class="m-1 btn btn-danger" @onclick="()=>HandlePdf(currentReceiptSelledSerices, currentReceipt)"> Factura</button>
+                        <button class="m-1 btn btn-danger" @onclick="()=>HandleChitanta(currentReceiptSelledSerices, currentReceipt)"> Chitanta</button>
                         <button class="m-1 btn btn-dark"> Plata</button>
+                    </div>
+                    <div>
+                        <script>
+                            function saveAndLoadPdf(pdfBytes,name) {
+                                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                                const url = URL.createObjectURL(blob);
+
+                                // For downloading the PDF
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = name;
+                                link.target = '_blank'; // Încearcă să deschidă într-un nou tab
+
+                                // Trighează descărcarea
+                                document.body.appendChild(link);
+                                link.click();
+
+                                // Curăță după descărcare
+                                document.body.removeChild(link);
+                            }
+                        </script>
                     </div>
                 </div>
             </div>
@@ -181,6 +204,32 @@ else
 
         list = await receiptService.FindAll(r => r.SiteId == device.SiteId);
         listNotFiltered = list;
+    }
+    private async Task HandlePdf(List<SelledService> selledServices, Receipt receipt)
+    {
+        var pdfData = DocumentGenerator.Invoice(selledServices, receipt);
+
+        await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData,$"factura-{DateTime.Now.Ticks}.pdf");
+        StateHasChanged();
+
+    }
+
+    private async Task HandleDeviz(List<SelledService> selledServices, Receipt receipt)
+    {
+        var pdfData = DocumentGenerator.Deviz(selledServices, receipt);
+
+        await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData, $"deviz-{DateTime.Now.Ticks}.pdf");
+        StateHasChanged();
+
+    }
+
+    private async Task HandleChitanta(List<SelledService> selledServices, Receipt receipt)
+    {
+        var pdfData = DocumentGenerator.Chitanta(selledServices, receipt);
+
+        await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData, $"chitanta-{DateTime.Now.Ticks}.pdf");
+        StateHasChanged();
+
     }
 
     private void UpdateList(object state)

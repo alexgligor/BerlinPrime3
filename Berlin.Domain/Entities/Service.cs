@@ -12,6 +12,8 @@ namespace Berlin.Domain.Entities
         public int ServiceTypeId { get; set; }
         public float Price { get; set; }
 
+        public string UM { get; set; } = string.Empty;
+
         public string? ImageUrl { get; set; }
     }
 }

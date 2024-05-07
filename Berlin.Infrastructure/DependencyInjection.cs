@@ -17,6 +17,7 @@ namespace Berlin.Infrastructure
             services.AddScoped<IGenericService<User>,GenericService<User>>();
             services.AddScoped<IGenericService<SelledService>,GenericService<SelledService>>();
             services.AddScoped<IGenericService<Receipt>,GenericService<Receipt>>();
+            services.AddScoped<IGenericService<Bill>,GenericService<Bill>>();
             services.AddScoped<ITestService, TestService>();
             return services;
         }

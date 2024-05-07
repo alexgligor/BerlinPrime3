@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Berlin.Application.Invoice
 {
+    using Berlin.Domain.Entities;
     using QuestPDF.Helpers;
 
     public static class InvoiceDocumentDataSource
@@ -33,14 +34,17 @@ namespace Berlin.Application.Invoice
             };
         }
 
-        private static OrderItem GenerateRandomOrderItem()
+        private static SelledService GenerateRandomOrderItem()
         {
-            return new OrderItem
+            return new SelledService
             {
-                Name = Placeholders.Label(),
-                Price = (decimal)Math.Round(Random.NextDouble() * 100, 2),
-                Quantity = Random.Next(1, 10),
-                UM = "BUC"
+                Service = new Service() {
+                    Title = Placeholders.Label(), UM = "BUC" },
+
+                Title = Placeholders.Label(),
+                Price = (float)Math.Round(Random.NextDouble() * 100, 2),
+                Count = Random.Next(1, 10),
+               
             };
         }
 

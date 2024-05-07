@@ -1,14 +1,18 @@
-﻿using QuestPDF.Drawing;
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-
+using SkiaSharp;
+using Image = QuestPDF.Infrastructure.Image;
+using QRCoder;
+using System.Drawing;
 
 namespace Berlin.Application.Invoice
 {
     public class InvoiceDocument : IDocument
     {
         public InvoiceModel Model { get; }
+
+        public bool IsInvoice { get; set; } = true;
 
         public InvoiceDocument(InvoiceModel model)
         {
@@ -21,21 +25,31 @@ namespace Berlin.Application.Invoice
 
         public void Compose(IDocumentContainer container)
         {
-            container
-                .Page(page =>
+            container.Page(page =>
                 {
                     page.Margin(50);
-
                     page.Header().Element(ComposeHeader);
                     page.Content().Element(ComposeContent);
 
-
-                    page.Footer().AlignCenter().Text(x =>
+                    page.Footer().Row(row =>
                     {
-                        x.CurrentPageNumber();
-                        x.Span(" / ");
-                        x.TotalPages();
+                        row.RelativeItem().AlignCenter().AlignBottom().Text(x =>
+                        {
+                            x.CurrentPageNumber();
+                            x.Span(" / ");
+                            x.TotalPages();
+                        });
+                           
+                        row.ConstantItem(60).AlignRight().Image(GenerateQRCodeAsStream("www.google.com"));
                     });
+
+
+                    var image = LoadImageWithTransparency(new FileStream(@"C:\Users\dan-alexandru.gligor\Downloads\lg.png", FileMode.Open, FileAccess.Read), 0.05f);
+                    if (image != null)
+                    {
+                        page.Background().Image(image);
+                    }
+
                 });
         }
 
@@ -47,7 +61,11 @@ namespace Berlin.Application.Invoice
             {
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text($"Invoice #{Model.InvoiceNumber}").Style(titleStyle);
+                    if(IsInvoice)
+                        column.Item().Text($"Factură #{Model.InvoiceNumber}").Style(titleStyle);
+                    else
+                        column.Item().Text($"Deviz #{Model.InvoiceNumber}").Style(titleStyle);
+
 
                     column.Item().Text(text =>
                     {
@@ -55,40 +73,65 @@ namespace Berlin.Application.Invoice
                         text.Span($"{Model.IssueDate:d}");
                     });
 
-                    column.Item().Text(text =>
-                    {
-                        text.Span("Data scadentă: ").SemiBold();
-                        text.Span($"{Model.DueDate:d}");
-                    });
+                    if(IsInvoice)
+                        column.Item().Text(text =>
+                        {
+                            text.Span("Data scadentă: ").SemiBold();
+                            text.Span($"{Model.DueDate:d}");
+                        });
                 });
 
-                row.ConstantItem(100).Height(50).Placeholder();
+                row.ConstantItem(80).Image(@"C:\Users\dan-alexandru.gligor\Downloads\ROFESSOr.png");
             });
         }
 
         void ComposeContent(IContainer container)
         {
-            container.PaddingVertical(40).Column(column =>
+            container.Column(column =>
             {
                 column.Spacing(5);
 
                 column.Item().Row(row =>
                 {
-                    var r1 = new AddressComponent("Vânzător", Model.SellerAddress);
-                    var r2 = new AddressComponent("Cumpărător", Model.CustomerAddress);
+                    var r1 = new AddressComponent("Furnizor", Model.SellerAddress);
+                    
                     r1.Compose(row);
                     row.ConstantItem(50);
-                    r2.ComposeShort(row);
+                    if (IsInvoice)
+                    {                         
+                        var r2 = new AddressComponent("Cumpărător", Model.CustomerAddress);
+                        r2.ComposeShort(row);
+                    }
+                    else
+                    {
+                        row.RelativeItem().Column(column =>
+                        {
+                            column.Spacing(1);
+
+                            column.Item().BorderBottom(1).PaddingBottom(5).Text("Detalii Client").SemiBold();
+
+                            column.Item().Text(Model.Receipt.Title).SemiBold();
+                        });
+                    }
                 });
 
                 column.Item().Element(ComposeTable);
 
-                var totalPrice = Model.Items.Sum(x => x.Price * x.Quantity);
-                var total = (double)totalPrice* 0.19 + (double)totalPrice;
-                column.Item().AlignRight().Text($"Total: {totalPrice.ToString("0.00")} RON").FontSize(14);
+                var totalPrice = Model.Items.Sum(x => x.Price * x.Count);
+                var TVA = (double)totalPrice * 0.19;
+                var TotalNet = totalPrice - TVA;
+                column.Item().AlignRight().Text($"Total NET: {TotalNet.ToString("0.00")} RON").FontSize(10);
+                column.Item().AlignRight().Text($"Total TVA: {TVA.ToString("0.00")} RON").FontSize(10);
+                column.Item().AlignRight().Text($"Total: {totalPrice.ToString("0.00")} RON").FontSize(14).Bold();
+                column.Item().PaddingTop(20).Row(c =>
+                {
+                    c.RelativeItem().AlignLeft().Text($"Semnatura primire: ............").FontSize(12).SemiBold();
+                    c.RelativeItem().AlignCenter().Text($"Semnatura furnizor: ............").FontSize(12).SemiBold();
+                });
+
 
                 if (!string.IsNullOrWhiteSpace(Model.Comments))
-                    column.Item().PaddingTop(25).Element(ComposeComments);
+                    column.Item().PaddingTop(5).Element(ComposeComments);
             });
         }
 
@@ -101,7 +144,7 @@ namespace Berlin.Application.Invoice
                 table.ColumnsDefinition(columns =>
                 {
                     columns.ConstantColumn(20);
-                    columns.RelativeColumn();
+                    columns.RelativeColumn(2);
                     columns.RelativeColumn();
                     columns.RelativeColumn();
                     columns.RelativeColumn();
@@ -132,16 +175,18 @@ namespace Berlin.Application.Invoice
                 foreach (var item in Model.Items)
                 {
                     table.Cell().Element(CellStyle).Text(Model.Items.IndexOf(item) + 1);
-                    table.Cell().Element(CellStyle).Text(item.Name);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity);
-                    table.Cell().Element(CellStyle).Text(item.UM);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(item.Price);
-                    var sumPrice = item.Price * item.Quantity;
-                    table.Cell().Element(CellStyle).AlignCenter().Text($"{sumPrice}");
-                    var tva = (double)sumPrice * 0.19;
+                    table.Cell().Element(CellStyle).Text(item.Service.Title);
+                    table.Cell().Element(CellStyle).AlignCenter().Text(item.Count);
+                    table.Cell().Element(CellStyle).Text(item.Service.UM);
+                    var itemTVA = (double)item.Price * 0.19;
+                    var itemNet = item.Price - itemTVA;
+                    table.Cell().Element(CellStyle).AlignCenter().Text(itemNet.ToString("0.00"));
+                    var sumPriceNet = itemNet * item.Count;
+                    table.Cell().Element(CellStyle).AlignCenter().Text($"{sumPriceNet.ToString("0.00")}");
+                    var tva = (double)itemTVA * item.Count;
+                    var sum = sumPriceNet + tva;
                     table.Cell().Element(CellStyle).Text($"{tva.ToString("0.00")}");
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{(tva+(double)sumPrice).ToString("0.00")}");
-
+                    table.Cell().Element(CellStyle).AlignRight().Text($"{sum.ToString("0.00")}");
                     static IContainer CellStyle(IContainer container)
                     {
                         return container.DefaultTextStyle(x => x.FontSize(9)).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(5);
@@ -152,12 +197,64 @@ namespace Berlin.Application.Invoice
 
         void ComposeComments(IContainer container)
         {
-            container.Background(Colors.Grey.Lighten3).Padding(10).Column(column =>
+            container.PaddingVertical(20).Column(column =>
             {
                 column.Spacing(5);
-                column.Item().Text("Comentarii").FontSize(14);
-                column.Item().Text(Model.Comments);
+
+                column.Item().Row(row =>
+                {
+
+                    row.RelativeItem(120).Column(column =>
+                    {
+
+                        column.Item().PaddingBottom(5).Text("Info").SemiBold();
+
+                        column.Item().Text("Hello 3 from your DYI project").FontSize(8);
+                    });
+                });
             });
         }
+
+        public static Image LoadImageWithTransparency(FileStream fileStream, float transparency)
+        {
+            try
+            {
+                using var originalImage = SKImage.FromEncodedData(fileStream);
+
+                using var surface = SKSurface.Create(originalImage.Width, originalImage.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
+                using var canvas = surface.Canvas;
+
+                using var transparencyPaint = new SKPaint
+                {
+                    ColorFilter = SKColorFilter.CreateBlendMode(SKColors.White.WithAlpha((byte)(transparency * 255)), SKBlendMode.DstIn)
+                };
+
+                canvas.DrawImage(originalImage, new SKPoint(0, 0), transparencyPaint);
+
+                var encodedImage = surface.Snapshot().Encode(SKEncodedImageFormat.Png, 100).ToArray();
+                return Image.FromBinaryData(encodedImage);
+            }
+            catch(Exception ex) {
+                Console.WriteLine("Unable to process the background image!",ex.Message);
+            }
+            return null;
+        }
+        public static FileStream GenerateQRCodeAsStream(string content)
+        {
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.Q);
+             
+            using (var qrCode = new QRCode(qrCodeData))
+            {
+                using (Bitmap qrCodeImage = qrCode.GetGraphic(10))
+                {
+                    string tempFileName = Path.GetTempFileName();
+                    qrCodeImage.Save(tempFileName, System.Drawing.Imaging.ImageFormat.Png);
+
+                    return new FileStream(tempFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                }
+            }
+        }
+
     }
 }

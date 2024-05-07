@@ -1,5 +1,3 @@
-using BerlinUI4.Client.Pages;
-using BerlinUI4.Components;
 using Berlin.Infrastructure;
 using Berlin.Application;
 using Berlin.Infrastructure.Services;
@@ -38,7 +36,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
+app.MapRazorComponents<BerlinUI4.Components.App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(BerlinUI4.Client._Imports).Assembly);

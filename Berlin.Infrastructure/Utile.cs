@@ -7,6 +7,11 @@ namespace Berlin.Infrastructure
     {
         private static Dictionary<String, EnvObj> SessonData = new Dictionary<String, EnvObj>();
 
+
+        static public void Clear()
+        {
+            SessonData.Clear();
+        }
         static public void SetSessionData(User user, String device)
         {
             if (SessonData.ContainsKey(device))
