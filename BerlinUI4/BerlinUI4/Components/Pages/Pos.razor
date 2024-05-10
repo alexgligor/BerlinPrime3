@@ -261,9 +261,10 @@
         }
 
         if (receipt == null)
-            receipt = new Receipt() { Site = site };
+            receipt = new Receipt() { Site = site, ClientDetails = new CompanyDetails() { Title = string.Empty} };
 
         receipt.Title = detalii;
+        receipt.ClientDetails.Comments = detalii;
         receipt.Description = user.Title;
 
         if(receipt.Id ==0)

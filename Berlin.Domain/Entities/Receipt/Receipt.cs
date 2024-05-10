@@ -13,6 +13,22 @@ namespace Berlin.Domain.Entities
 
         public Site Site { get; set; }
 
+        public int? BillId { get; set; }
+
+        public Bill Bill { get; set; }
+
+        public int? DevizId { get; set; }
+
+        public Deviz Deviz { get; set; }
+
+        public int? InvoiceId { get; set; }
+
+        public Invoice Invoice { get; set; }
+
         public PayMethod PayMethod { get; set; } = PayMethod.NotPayed;
+
+        public CompanyDetails ClientDetails { get; set; }
+        public int ClientDetailsId { get; set; }
+
     }
 }

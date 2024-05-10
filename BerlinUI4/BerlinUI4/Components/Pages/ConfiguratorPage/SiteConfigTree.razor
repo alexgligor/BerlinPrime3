@@ -127,6 +127,19 @@
 
     private async Task HandleNewUserSubmit(Site item)
     {
+        var post = item.Title.Substring(0,3).ToUpper() + DateTime.Now.Year;
+        item.BillDetails = new BillDetails()
+            {
+                Title = item.Title,
+                DevizNr = 1,
+                InvoiceNr = 1,
+                BillNr = 1,
+                DevizSerie = "DE" + post,
+                BillSerie = "CH" + post,
+                InvoiceSerie = "FA" + post,
+                SiteId= item.Id
+
+            };
         await serviceSite.Add(item);
 
 

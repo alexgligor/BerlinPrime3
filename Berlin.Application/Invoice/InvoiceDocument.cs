@@ -27,7 +27,7 @@ namespace Berlin.Application.Invoice
         {
             container.Page(page =>
                 {
-                    page.Margin(50);
+                    page.Margin(30);
                     page.Header().Element(ComposeHeader);
                     page.Content().Element(ComposeContent);
 
@@ -61,23 +61,30 @@ namespace Berlin.Application.Invoice
             {
                 row.RelativeItem().Column(column =>
                 {
-                    if(IsInvoice)
-                        column.Item().Text($"Factură #{Model.InvoiceNumber}").Style(titleStyle);
+                    column.Item().Text(IsInvoice ? "Factură" : "Deviz").Style(titleStyle);
+
+                    if (IsInvoice)
+                    {
+                        column.Item().Text($"{Model.Receipt.Invoice.Title} #{Model.Receipt.Invoice.Description}").Style(titleStyle).FontSize(10);
+                    }
                     else
-                        column.Item().Text($"Deviz #{Model.InvoiceNumber}").Style(titleStyle);
+                    {
+                        column.Item().Text($"{Model.Receipt.Deviz.Title} #{Model.Receipt.Deviz.Description}").Style(titleStyle).FontSize(10);
+                    }
 
 
+                    var date = IsInvoice ? Model.Receipt.Invoice.CreateDate: Model.Receipt.Deviz.CreateDate;
                     column.Item().Text(text =>
                     {
-                        text.Span("Data curentă: ").SemiBold();
-                        text.Span($"{Model.IssueDate:d}");
+                        text.Span("Dată: ").SemiBold();
+                        text.Span($"{date:d}");
                     });
 
                     if(IsInvoice)
                         column.Item().Text(text =>
                         {
                             text.Span("Data scadentă: ").SemiBold();
-                            text.Span($"{Model.DueDate:d}");
+                            text.Span($"{date.AddDays(30):d}");
                         });
                 });
 
@@ -93,13 +100,13 @@ namespace Berlin.Application.Invoice
 
                 column.Item().Row(row =>
                 {
-                    var r1 = new AddressComponent("Furnizor", Model.SellerAddress);
+                    var r1 = new CompanyCompose("Furnizor", Model.SellerAddress);
                     
                     r1.Compose(row);
                     row.ConstantItem(50);
                     if (IsInvoice)
                     {                         
-                        var r2 = new AddressComponent("Cumpărător", Model.CustomerAddress);
+                        var r2 = new AddressComponent("Cumpărător", Model.Receipt.ClientDetails);
                         r2.ComposeShort(row);
                     }
                     else
@@ -130,7 +137,7 @@ namespace Berlin.Application.Invoice
                 });
 
 
-                if (!string.IsNullOrWhiteSpace(Model.Comments))
+                if (!string.IsNullOrWhiteSpace(Model.Receipt.ClientDetails.Comments))
                     column.Item().PaddingTop(5).Element(ComposeComments);
             });
         }

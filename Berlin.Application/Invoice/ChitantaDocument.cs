@@ -1,6 +1,8 @@
 ﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System.Net;
+using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Berlin.Application.Invoice
@@ -26,12 +28,15 @@ namespace Berlin.Application.Invoice
                      page.Margin(25);
                      page.Content().Column(column =>
                      {
-                         column.Spacing(10); // spațiu între chitanțe
-
                          var totalPrice = Model.Items.Sum(x => x.Price * x.Count);
-                         BuildChitanta(column, totalPrice);
-                         column.Spacing(70);
-                         BuildChitanta(column, totalPrice);
+                         BuildChitanta(column, totalPrice, Model);
+                         column.Spacing(30);
+                         column.Item().AlignCenter().Text("--------------------------------------------------------"
+                                                            +" Generata cu sistemul Berlin de la Professor Prime " +
+                                                            "--------------------------------------------------------").FontSize(8);
+                         column.Spacing(30);
+
+                         BuildChitanta(column, totalPrice, Model);
 
                      });
 
@@ -43,27 +48,59 @@ namespace Berlin.Application.Invoice
                  });
         }
 
-        private static void BuildChitanta(ColumnDescriptor column, float price)
+        private static void BuildChitanta(ColumnDescriptor column, float price, InvoiceModel Model)
         {
+            var Address = Model.SellerAddress;
             var firstPart = Math.Floor(price);
             double fractionalPart = (price - Math.Floor(price))*100;
-            column.Item().Container().Height(5, Unit.Centimetre).Border(1).Padding(10).Row(row =>
+            column.Item().Container().Height(12, Unit.Centimetre).Border(1).Padding(20).Row(row =>
             {
-                row.RelativeColumn(3).Stack(stack =>
-                {
-                    stack.Item().Text("Chitanță", TextStyle.Default.Size(20).Bold());
-                    stack.Item().Text($"Data: {DateTime.Now.ToString("dd/MM/yyyy")}");
-                    stack.Item().Text($"Sumă: {price} RON");
-                    if(fractionalPart>0)
-                        stack.Item().Text($"Sumă in cifre: {NumbersToWords.Convert((int) firstPart)} virgula  {NumbersToWords.Convert((int)fractionalPart)} RON").SemiBold();
-                    else
-                        stack.Item().Text($"Sumă in cifre: {NumbersToWords.Convert((int) firstPart)} RON").SemiBold();
-                    stack.Item().Text("Primit de la: Ion Popescu");
-                    stack.Item().Text("Serviciu: Consultație");
-                    stack.Item().Text("Semnătură: __________________");
-                });
+                row.RelativeItem().Column(col => {
+                    col.Item().Row(ro =>
+                    {
+                        ro.RelativeColumn().Column(col =>
+                        {
+                            col.Item().Text($"Furnizor: {Address.Title}");
+                            col.Item().Text($"Reg.com: {Address.RegCom}");
+                            col.Item().Text($"CIF: {Address.CIF}");
+                            col.Item().Text($"Adresa: {Address.Address}");
+                        });
 
-                row.ConstantItem(80).AlignRight().AlignTop().Image(@"C:\Users\dan-alexandru.gligor\Downloads\ROFESSOr.png"); // înlocuiește "path_to_your_image.jpg" cu calea reală către imaginea ta
+                        ro.ConstantItem(80).Image(@"C:\Users\dan-alexandru.gligor\Downloads\ROFESSOr.png");
+
+                    });
+                    col.Item().Row(ro =>
+                    {
+                        ro.RelativeColumn().AlignCenter().Column(col =>
+                        {
+                            col.Item().AlignCenter().Text("Chitanță", TextStyle.Default.Size(20).Bold());
+                            col.Item().Container().Height(2, Unit.Centimetre).Width(6, Unit.Centimetre).Padding(10).Border(1).Row(r => {
+                                r.RelativeColumn().AlignCenter().Column(c =>
+                                {
+                                    c.Item().Text($"Data: {Model.Receipt.Bill.CreateDate:d}");
+                                    c.Item().Text($"Serie: {Model.Receipt.Bill.Title} NR.{Model.Receipt.Bill.Description}");
+                                }); });
+                        });
+                    });
+                    col.Item().Row(ro =>
+                    {
+                        var pretInCifre = fractionalPart > 0 ? $"{NumbersToWords.Convert((int)firstPart)} virgula  {NumbersToWords.Convert((int)fractionalPart)}" : NumbersToWords.Convert((int)firstPart);
+
+                        var regCom = string.IsNullOrEmpty(Model.Receipt.ClientDetails.RegCom) ? ".....x....." : Model.Receipt.ClientDetails.RegCom;
+                        var address = string.IsNullOrEmpty(Model.Receipt.ClientDetails.Address) ? ".....x....." : Model.Receipt.ClientDetails.Address;
+                        var invoice = Model.Receipt.Invoice == null ? " " : $"Reprezentand contravaloarea facturii cu seria {Model.Receipt.Invoice.Title} nr.{Model.Receipt.Invoice.Description}.";
+                        var cif = string.IsNullOrEmpty(Model.Receipt.ClientDetails.CIF) ? ".....x....." : Model.Receipt.ClientDetails.CIF;
+
+
+                        ro.RelativeColumn(3).Stack(stack =>
+                        {
+                            stack.Item().Text($"       Am primit de la : {Model.Receipt.ClientDetails.Title}, CIF: {cif}, "
+                                            + $"Reg.com: {regCom}, Adresa: {address} suma de "
+                                            + $"{ price} RON, adică {pretInCifre} RON. {invoice}");
+                            stack.Item().AlignRight().Text("\nCasier: __________________");
+                        });
+                    });
+                });
             });
         }
     }

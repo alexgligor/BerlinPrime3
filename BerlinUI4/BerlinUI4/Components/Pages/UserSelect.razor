@@ -232,9 +232,11 @@ else
                         var div = await serviceDivision.Find(su.DivisionId);
                         if (div != null)
                         {
-                            divisions.Add(su.Division);
+                            su.Division = div;
                         }
                     }
+
+                    divisions.Add(su.Division);
                 }
                 catch (Exception ex)
                 {

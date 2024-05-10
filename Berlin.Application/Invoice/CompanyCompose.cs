@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Berlin.Application.Invoice
 {
-    public class AddressComponent : IComponent
+    public class CompanyCompose : IComponent
     {
         private string Title { get; }
-        private CompanyDetails Address { get; }
+        private Company Address { get; }
 
-        public AddressComponent(string title, CompanyDetails address)
+        public CompanyCompose(string title, Company address)
         {
             Title = title;
             Address = address;

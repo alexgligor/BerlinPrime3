@@ -50,7 +50,7 @@ namespace Berlin.Application.Invoice
             if (i < 1000)
             {
                 return units[i / 100] + " sute"
-                        + ((i % 100 > 0) ? " și " + Convert(i % 100) : "");
+                        + ((i % 100 > 0) ? " " + Convert(i % 100) : "");
             }
             if (i < 100000)
             {

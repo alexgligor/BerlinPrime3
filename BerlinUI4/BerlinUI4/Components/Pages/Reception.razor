@@ -7,6 +7,7 @@
 @inject IGenericService<Receipt> receiptService
 @inject IGenericService<Device> deviceService
 @inject IGenericService<SelledService> selectedServiceService
+@inject IGenericService<Site> siteService
 
 @inject IJSRuntime JSRuntime
 
@@ -23,8 +24,8 @@ else
 {
     <div class="d-flex justify-content-center align-items-center ">
         <InputText class="form-control-sm" @bind-Value="searchObjet" DisplayName="Cauta" @oninput="HandleInputChange" />
-   </div>
-    <hr/>
+    </div>
+    <hr />
     <table class="table">
         <thead>
             <tr>
@@ -37,19 +38,27 @@ else
             </tr>
         </thead>
         <tbody>
-            @{int i=0;}
+            @{
+                int i = 0;
+                static string Method(PayMethod method)
+                {
+                    var payMethod = "";
+                    switch (method)
+                    {
+                        case PayMethod.NotPayed: payMethod = "🚫"; break;
+                        case PayMethod.Card: payMethod = "💳"; break;
+                        case PayMethod.Cash: payMethod = "💵"; break;
+                        case PayMethod.OP: payMethod = "🏦"; break;
+                        case PayMethod.Other: payMethod = "🔄"; break;
+                    }
+                    return payMethod;
+                }
+            }
             @foreach (var article in list)
             {
-                i++;                
-                var payMethod = "";
-                switch(article.PayMethod)
-                {
-                    case PayMethod.NotPayed: payMethod = "🚫"; break;
-                    case PayMethod.Card: payMethod = "💳"; break;
-                    case PayMethod.Cash: payMethod = "💵";  break;
-                    case PayMethod.OP: payMethod = "🏦"; break;
-                    case PayMethod.Other: payMethod = "🔄"; break;
-                }
+                i++;
+                var payMethod = Method(article.PayMethod);
+
 
                 <tr>
                     <th>@i</th>
@@ -58,12 +67,14 @@ else
                     <th>
                         @payMethod
                     </th>
-                    <th><a  @onclick="()=>Selected(article)">
+                    <th>
+                        <a @onclick="()=>Selected(article)">
                             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                                 <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
                                 <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
                             </svg>
-                    </a></th>
+                        </a>
+                    </th>
                     <th>@article.CreateDate</th>
                 </tr>
             }
@@ -78,6 +89,30 @@ else
             <div class="modal-header border-bottom-0 ">
                 <h1 class="modal-title fs-5">@currentReceipt.Title</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" @onclick="()=>showModal=false" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <EditForm Model="@currentReceipt.ClientDetails">
+                        <div class="input-group mb-3 ">
+                            <div class="form-group d-flex">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">CUI</span>
+                                </div>
+                                <InputText class="form-control" @bind-Value="currentReceipt.ClientDetails.CIF" />
+                        
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Name</span>
+                                </div>
+                                <InputText @bind-Value="currentReceipt.ClientDetails.Title" class="form-control" />
+
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Delegat</span>
+                                </div>
+                                <InputText @bind-Value="currentReceipt.ClientDetails.Delegate" class="form-control" />
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
             </div>
             <div class="modal-footer d-block">
                 <div class="row overflow-auto" id="UsersId">
@@ -111,9 +146,9 @@ else
                                         <th>@item.Count</th>
                                         <th>@sum</th>
                                         <th>@item.User.Title</th>
-                                     </tr>
+                                    </tr>
                                 }
-                                
+
                             </tbody>
                             <tfoot>
                                 <tr>
@@ -126,21 +161,34 @@ else
                     }
 
                     <div class="d-flex">
-                        <select style="width:auto" value="@currentReceipt.PayMethod.ToString()"  @onchange="HandleOnChange">
+                        <select value="@currentReceipt.PayMethod" @onchange="HandleOnChange">
                             <option value="0">🚫</option>
                             <option value="1">💵</option>
                             <option value="2">💳</option>
                             <option value="3">🏦</option>
                             <option value="4">🔄</option>
                         </select>
+                        @{
+                            var payMethod = "";
+                            switch (currentReceipt.PayMethod)
+                            {
+                                case PayMethod.NotPayed: payMethod = "🚫"; break;
+                                case PayMethod.Card: payMethod = "💳"; break;
+                                case PayMethod.Cash: payMethod = "💵"; break;
+                                case PayMethod.OP: payMethod = "🏦"; break;
+                                case PayMethod.Other: payMethod = "🔄"; break;
+                            }
+                        }
+                        <h1>@payMethod</h1>
                         <button class="m-1 btn btn-primary" @onclick="()=>HandleDeviz(currentReceiptSelledSerices, currentReceipt)"> Deviz</button>
-                        <button class="m-1 btn btn-danger" @onclick="()=>HandlePdf(currentReceiptSelledSerices, currentReceipt)"> Factura</button>
-                        <button class="m-1 btn btn-danger" @onclick="()=>HandleChitanta(currentReceiptSelledSerices, currentReceipt)"> Chitanta</button>
-                        <button class="m-1 btn btn-dark"> Plata</button>
+                        <button class="m-1 btn btn-info" @onclick="()=>HandleInvoice(currentReceiptSelledSerices, currentReceipt)"> Factura</button>
+                        <button class="m-1 btn btn-success" @onclick="()=>HandleChitanta(currentReceiptSelledSerices, currentReceipt)"> Chitanta</button>
+                        <button class="m-1 btn btn-outline-info"> Plata spre POS</button>
                     </div>
+
                     <div>
                         <script>
-                            function saveAndLoadPdf(pdfBytes,name) {
+                            function saveAndLoadPdf(pdfBytes, name) {
                                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                                 const url = URL.createObjectURL(blob);
 
@@ -160,6 +208,7 @@ else
                         </script>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -202,21 +251,56 @@ else
             return;
         device = devices.FirstOrDefault();
 
-        list = await receiptService.FindAll(r => r.SiteId == device.SiteId);
+        list = await receiptService.FindAll(r => r.SiteId == device.SiteId, r => r.Deviz, r => r.Bill, r => r.Invoice, r => r.ClientDetails );
         listNotFiltered = list;
     }
-    private async Task HandlePdf(List<SelledService> selledServices, Receipt receipt)
-    {
-        var pdfData = DocumentGenerator.Invoice(selledServices, receipt);
 
-        await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData,$"factura-{DateTime.Now.Ticks}.pdf");
+    private async Task HandleInvoice(List<SelledService> selledServices, Receipt receipt)
+    {
+        var site = await siteService.Get(receipt.SiteId, s => s.BillDetails, s => s.Company);
+
+        if (receipt.Invoice == null)
+        {
+            if (site.BillDetails != null)
+            {
+                receipt.Invoice = new Invoice() { Title = site.BillDetails.InvoiceSerie, Description = site.BillDetails.InvoiceNr.ToString(), CreateDate = DateTime.Now };
+                site.BillDetails.IncreaseInvoiceNumber();
+                await siteService.Update(site);
+            }
+            else
+                receipt.Invoice = new Invoice() { Title = "FAC", Description = new Random().Next(1, 9999).ToString() };
+
+
+            await receiptService.Update(receipt);
+        }
+
+        var pdfData = DocumentGenerator.Invoice(selledServices, receipt, site.Company);
+
+        await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData, $"factura-{DateTime.Now.Ticks}.pdf");
         StateHasChanged();
 
     }
 
     private async Task HandleDeviz(List<SelledService> selledServices, Receipt receipt)
     {
-        var pdfData = DocumentGenerator.Deviz(selledServices, receipt);
+        var site = await siteService.Get(receipt.SiteId, s => s.BillDetails, s => s.Company);
+
+        if (receipt.Deviz == null)
+        {
+            if (site.BillDetails != null)
+            {
+                receipt.Deviz = new Deviz() { Title = site.BillDetails.DevizSerie, Description = site.BillDetails.DevizNr.ToString(), CreateDate = DateTime.Now };
+                site.BillDetails.IncreaseDevizNumber();
+                await siteService.Update(site);
+            }
+            else
+                receipt.Deviz = new Deviz() { Title = "DVZ", Description = new Random().Next(1, 9999).ToString() };
+
+
+            await receiptService.Update(receipt);
+        }
+
+        var pdfData = DocumentGenerator.Deviz(selledServices, receipt, site.Company);
 
         await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData, $"deviz-{DateTime.Now.Ticks}.pdf");
         StateHasChanged();
@@ -225,7 +309,23 @@ else
 
     private async Task HandleChitanta(List<SelledService> selledServices, Receipt receipt)
     {
-        var pdfData = DocumentGenerator.Chitanta(selledServices, receipt);
+        var site = await siteService.Get(receipt.SiteId, s => s.BillDetails, s => s.Company);
+
+        if (receipt.Bill == null)
+        {
+            if (site.BillDetails != null)
+            {
+                receipt.Bill = new Bill() { Title = site.BillDetails.BillSerie, Description = site.BillDetails.BillNr.ToString(), CreateDate = DateTime.Now };
+                site.BillDetails.IncreaseBillNumber();
+                await siteService.Update(site);
+            }
+            else
+                receipt.Bill = new Bill() { Title = "FAC", Description = new Random().Next(1, 9999).ToString() };
+
+
+            await receiptService.Update(receipt);
+        }
+        var pdfData = DocumentGenerator.Chitanta(selledServices, receipt, site.Company);
 
         await JSRuntime.InvokeVoidAsync("saveAndLoadPdf", pdfData, $"chitanta-{DateTime.Now.Ticks}.pdf");
         StateHasChanged();
@@ -234,12 +334,12 @@ else
 
     private void UpdateList(object state)
     {
-        InvokeAsync( async () =>
+        InvokeAsync(async () =>
         {
             if (filterOn)
                 return;
             var newList = await receiptService.FindAll(r => r.SiteId == device.SiteId);
-            if(newList.Count != list.Count)
+            if (newList.Count != list.Count)
             {
                 listNotFiltered = newList;
                 list = listNotFiltered;
@@ -258,7 +358,7 @@ else
         var findStr = e.Value.ToString();
         filterOn = findStr.Length > 0;
 
-        list = listNotFiltered.Where(art =>  art.Title.ToLower().Contains(findStr.ToLower())
+        list = listNotFiltered.Where(art => art.Title.ToLower().Contains(findStr.ToLower())
                || art.Description.ToLower().Contains(findStr.ToLower())).ToList();
         StateHasChanged();
     }
@@ -268,13 +368,13 @@ else
         try
         {
             currentReceipt = receipt;
-            currentReceiptSelledSerices = await selectedServiceService.FindAll(i => i.ReceiptId == receipt.Id, s=> s.Service, s=>s.User);
+            currentReceiptSelledSerices = await selectedServiceService.FindAll(i => i.ReceiptId == receipt.Id, s => s.Service, s => s.User);
 
             showModal = true;
         }
         catch (Exception)
         {
-            
+
         }
     }
 
