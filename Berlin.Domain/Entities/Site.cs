@@ -11,6 +11,8 @@ namespace Berlin.Domain.Entities
         public ICollection<SiteDivision> Divisions { get; set; } = new List<SiteDivision>();
         public ICollection<Device> Devices { get; set; } = new List<Device>();
         public ICollection<SiteUser> Users { get; set; } = new List<SiteUser>();
+        public ICollection<SiteProduct> Products { get; set; } = new List<SiteProduct>();
+
 
         public BillDetails BillDetails { get; set; }
         public int? BillDetailsId { get; set; }

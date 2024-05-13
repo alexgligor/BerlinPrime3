@@ -9,6 +9,7 @@ namespace Berlin.Domain.Entities
 {
     public class Receipt:BaseDbObject
     {
+        public float Total { get; set; }
         public int SiteId { get; set; }
 
         public Site Site { get; set; }

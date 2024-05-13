@@ -39,15 +39,20 @@ namespace Berlin.Application.Invoice
                             x.Span(" / ");
                             x.TotalPages();
                         });
-                           
-                        row.ConstantItem(60).AlignRight().Image(GenerateQRCodeAsStream("www.google.com"));
+                        var qrcode = IsInvoice ? Model.Receipt.Invoice.QRLink : Model.Receipt.Deviz.QRLink;
+                        if (string.IsNullOrEmpty(qrcode))
+                            qrcode = "www.google.com";
+                        row.ConstantItem(60).AlignRight().Image(GenerateQRCodeAsStream(qrcode));
                     });
 
-
-                    var image = LoadImageWithTransparency(new FileStream(@"C:\Users\dan-alexandru.gligor\Downloads\lg.png", FileMode.Open, FileAccess.Read), 0.05f);
-                    if (image != null)
+                    if (!string.IsNullOrEmpty(Model.BillDetails.BackgroundURL))
                     {
-                        page.Background().Image(image);
+                        var path = Path.Combine(Model.WebRootPath , Model.BillDetails.BackgroundURL);
+                        var image = LoadImageWithTransparency(new FileStream(path, FileMode.Open, FileAccess.Read), 0.05f);
+                        if (image != null)
+                        {
+                            page.Background().Image(image);
+                        }
                     }
 
                 });
@@ -84,11 +89,16 @@ namespace Berlin.Application.Invoice
                         column.Item().Text(text =>
                         {
                             text.Span("Data scadentă: ").SemiBold();
-                            text.Span($"{date.AddDays(30):d}");
+                            text.Span($"{date.AddDays(Model.BillDetails.PayDays):d}");
                         });
                 });
 
-                row.ConstantItem(80).Image(@"C:\Users\dan-alexandru.gligor\Downloads\ROFESSOr.png");
+                if (!string.IsNullOrEmpty(Model.BillDetails.BackgroundURL))
+                {
+                    var path = Path.Combine(Model.WebRootPath , Model.BillDetails.LogoURL);
+
+                    row.ConstantItem(80).Image(path);
+                }
             });
         }
 
@@ -136,9 +146,8 @@ namespace Berlin.Application.Invoice
                     c.RelativeItem().AlignCenter().Text($"Semnatura furnizor: ............").FontSize(12).SemiBold();
                 });
 
-
-                if (!string.IsNullOrWhiteSpace(Model.Receipt.ClientDetails.Comments))
-                    column.Item().PaddingTop(5).Element(ComposeComments);
+                
+                column.Item().PaddingTop(5).Element(ComposeComments);
             });
         }
 
@@ -204,22 +213,24 @@ namespace Berlin.Application.Invoice
 
         void ComposeComments(IContainer container)
         {
-            container.PaddingVertical(20).Column(column =>
-            {
-                column.Spacing(5);
-
-                column.Item().Row(row =>
+            var disclamer = IsInvoice ? Model.Receipt.Invoice.Disclamer : Model.Receipt.Deviz.Disclamer;
+            if (!string.IsNullOrWhiteSpace(disclamer))
+                container.PaddingVertical(20).Column(column =>
                 {
+                    column.Spacing(5);
 
-                    row.RelativeItem(120).Column(column =>
+                    column.Item().Row(row =>
                     {
 
-                        column.Item().PaddingBottom(5).Text("Info").SemiBold();
+                        row.RelativeItem(120).Column(column =>
+                        {
 
-                        column.Item().Text("Hello 3 from your DYI project").FontSize(8);
+                            column.Item().PaddingBottom(5).Text("Info").SemiBold();
+
+                            column.Item().Text(disclamer).FontSize(6);
+                        });
                     });
                 });
-            });
         }
 
         public static Image LoadImageWithTransparency(FileStream fileStream, float transparency)

@@ -15,5 +15,6 @@ namespace Berlin.Domain.Entities
         public string UM { get; set; } = string.Empty;
 
         public string? ImageUrl { get; set; }
+        public ICollection<ServiceProduct> Products { get; set; } = new List<ServiceProduct>();
     }
 }

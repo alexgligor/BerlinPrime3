@@ -1,7 +1,7 @@
 ﻿@page "/articleslist"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-@inject IGenericService<GenericArticle> genericArticleService
+@inject IGenericService<Product> genericArticleService
 @inject IJSRuntime JSRuntime
 
 
@@ -27,7 +27,7 @@ else
         </button>
    </div>
     <hr/>
-    <table class="table">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>#</th>
@@ -51,7 +51,7 @@ else
                 <td><InputText @bind-Value="newArticle.Title" /></td>
                 <td><InputText @bind-Value="newArticle.Description" /></td>
                 <td><InputNumber @bind-Value="newArticle.Count" /></td>
-                <td><InputText @bind-Value="newArticle.Location" /></td>
+                <td><InputText @bind-Value="newArticle.Site.Title" /></td>
                 <td><button @onclick="NewArticleSubmit" class="btn">Add</button></td>
                 <td></td>
             </tr>
@@ -68,7 +68,7 @@ else
                     <td>@article.Title</td>
                     <td>@article.Description</td>
                     <td>@article.Count</td>
-                    <td>@article.Location</td>
+                    <td>@article.Site.Title</td>
                     <td>@article.CreateDate.ToShortDateString() @article.CreateDate.ToShortTimeString() </td>
                     <td>
                         <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#@article.Id" aria-controls="@article.Id" @onclick ="()=>HideRow(article)" >
@@ -98,7 +98,7 @@ else
                     <td><InputText @bind-Value="article.Title" /></td>
                     <td><InputText @bind-Value="article.Description" /></td>
                     <td><InputNumber @bind-Value="article.Count" /></td>
-                    <td><InputText @bind-Value="article.Location" /></td>
+                    <td><InputText @bind-Value="article.Site.Title" /></td>
                     <td><button @onclick="()=>UpdateArticle(article)" class="btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy-fill" viewBox="0 0 16 16">
                                 <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0H3v5.5A1.5 1.5 0 0 0 4.5 7h7A1.5 1.5 0 0 0 13 5.5V0h.086a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5H14v-5.5A1.5 1.5 0 0 0 12.5 9h-9A1.5 1.5 0 0 0 2 10.5V16h-.5A1.5 1.5 0 0 1 0 14.5z" />
@@ -122,17 +122,17 @@ else
 }
 
 @code {
-    private List<GenericArticle>? list;
+    private List<Product>? list;
 
-    private List<GenericArticle>? listSave;
+    private List<Product>? listSave;
 
     private string searchObjet { get; set; }
 
     private string addArticleClass { get; set; } = "accordion-collapse collapse accordion-body";
 
-    private GenericArticle newArticle { get; set; } = new GenericArticle();
-    private Dictionary<GenericArticle, string> accordions { get; set; } = new();
-    private Dictionary<GenericArticle, string> rows { get; set; } = new();
+    private Product newArticle { get; set; } = new Product();
+    private Dictionary<Product, string> accordions { get; set; } = new();
+    private Dictionary<Product, string> rows { get; set; } = new();
 
    
 
@@ -148,17 +148,17 @@ else
         listSave.Add(article);
         list.Insert(0, newArticle); 
         addArticleClass = addArticleClass + " a";
-        newArticle = new GenericArticle();
+        newArticle = new Product();
         StateHasChanged();
     }
 
     async Task NewArticleSubmitCancel()
     {
         addArticleClass = addArticleClass + " a";
-        newArticle = new GenericArticle();
+        newArticle = new Product();
         StateHasChanged();
     }
-    async Task UpdateArticleSubmitCancel(GenericArticle article)
+    async Task UpdateArticleSubmitCancel(Product article)
     {
         rows[article] = "accordion-collapse accordion-body collapse show";
         accordions[article] = "accordion-collapse collapse accordion-body";
@@ -167,7 +167,7 @@ else
         StateHasChanged();
     }
 
-    async Task HideRow(GenericArticle article)
+    async Task HideRow(Product article)
     {
         rows[article] = "accordion-collapse collapse accordion-body";
         accordions[article] = "accordion-collapse accordion-body collapse show";
@@ -177,7 +177,7 @@ else
 
 
     //poti sa faci la fel si pentru search si update - cu update context
-    async Task Delete(GenericArticle article)
+    async Task Delete(Product article)
     {
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Ești sigur că vrei să ștergi?");
         if (confirmed)
@@ -190,7 +190,7 @@ else
         }
     }
 
-    private async Task UpdateArticle(GenericArticle article)
+    private async Task UpdateArticle(Product article)
     {
         await genericArticleService.Update(article);
         accordions[article] = "accordion-collapse collapse accordion-body";
@@ -202,7 +202,7 @@ else
     private async Task HandleInputChange(ChangeEventArgs e)
     {
         var findStr = e.Value.ToString();
-        list = listSave.Where(art => art.Location.ToLower().Contains(findStr.ToLower())
+        list = listSave.Where(art => art.Site.Title.ToLower().Contains(findStr.ToLower())
                                                         || art.Title.ToLower().Contains(findStr.ToLower())
                                                         || art.Description.ToLower().Contains(findStr.ToLower())
                                                         || art.Count.ToString().Contains(findStr.ToLower())

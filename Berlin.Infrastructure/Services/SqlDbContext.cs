@@ -1,11 +1,5 @@
 ﻿using Berlin.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace Berlin.Infrastructure.Services
 {
@@ -19,8 +13,6 @@ namespace Berlin.Infrastructure.Services
         public DbSet<GenericArticle> GenericArticles { get; set; }
         public DbSet<Division> Divisions { get; set; }
         public DbSet<ServiceType> ServiceTypes { get; set; }
-        public DbSet<SiteDivision> SiteDivisions { get; set; }
-        public DbSet<SiteUser> SiteUsers { get; set; }
         public DbSet<Device> Devices { get; set; }
         public DbSet<Site> Sites { get; set; }
         public DbSet<User> Users { get; set; }
@@ -30,11 +22,35 @@ namespace Berlin.Infrastructure.Services
         public DbSet<SelledService> SelledServices { get; set; }
         public DbSet<BillDetails> BillDetails { get; set; }
         public DbSet<Company> Companies { get; set; }
+        public DbSet<Product> Products { get; set; }
 
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ProductHistoryProduct>()
+           .HasKey(ab => new { ab.ProductId, ab.ProductHistoryId });
+
+            modelBuilder.Entity<ProductHistoryProduct>()
+                   .HasOne(ab => ab.Product)
+                   .WithMany(a => a.ProductHistores)
+                   .HasForeignKey(ab => ab.ProductId);
+            /// for trasability
+            modelBuilder.Entity<SiteProduct>()
+            .HasKey(ab => new { ab.SiteId, ab.ProductId });
+            modelBuilder.Entity<SiteProduct>()
+                    .HasOne(ab => ab.Site)
+                    .WithMany(a => a.Products)
+                    .HasForeignKey(ab => ab.ProductId);
+
+            modelBuilder.Entity<ServiceProduct>()
+            .HasKey(ab => new { ab.ServiceId, ab.ProductId });
+
+            modelBuilder.Entity<ServiceProduct>()
+                    .HasOne(ab => ab.Service)
+                    .WithMany(a => a.Products)
+                    .HasForeignKey(ab => ab.ProductId);
+
             modelBuilder.Entity<Company>()
                    .HasOne(ab => ab.Site)
                    .WithOne(a => a.Company)
@@ -167,8 +183,7 @@ namespace Berlin.Infrastructure.Services
                     Title = "Valve",
                     Description = "Val 1"
                 });
-
-            modelBuilder.Entity<Service>().HasData(
+           modelBuilder.Entity<Service>().HasData(
                         new Service() { ServiceTypeId =4, Id = 13, Title = "Valva metal", Price = 90, UM = "BUC" },
                         new Service() { ServiceTypeId = 4, Id = 14, Title = "Valva cu surub", Price = 10, UM = "BUC" },
                         new Service() { ServiceTypeId = 4, Id = 15, Title = "Valva Sensor", Price = 105, UM = "BUC" },
@@ -226,7 +241,8 @@ namespace Berlin.Infrastructure.Services
                     DevizSerie = "DEVTM2024",
                     InvoiceNr = 1,
                     InvoiceSerie ="FACTM2024",
-                    Title ="Inital"
+                    Title ="Inital",
+
                 });
             ;
 

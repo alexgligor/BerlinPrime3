@@ -180,18 +180,7 @@
         var file = e.File;
         if (file != null)
         {
-            // Ensure the folder exists
-            var uploads = Path.Combine(Environment.WebRootPath, "uploads");
-            Directory.CreateDirectory(uploads);
-            // Save the file
-            var filePath = Path.Combine(uploads, file.Name);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.OpenReadStream().CopyToAsync(stream);
-            }
-
-            userNode.Item.ImageUrl = $"uploads/{file.Name}";
-
+            userNode.Item.ImageUrl = await ImageHelper.SaveUserImg(file, Environment.WebRootPath);
             await serviceUser.Update(userNode.Item);
             StateHasChanged();
         }

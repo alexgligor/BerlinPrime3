@@ -88,7 +88,7 @@
                 @if (selectedServices.Count != 0)
                 {
                     <div class="d-flex w-100 align-items-center justify-content-between">
-                        <button class="btn btn-success w-100" style="height: 60px;" @onclick="FinishTransaction">
+                        <button class="btn btn-success w-100" style="height: 60px;" @onclick="()=>FinishTransaction(sum)">
                             <strong class="mb-1">Finalizează acum - @sum Lei</strong>
                         </button>
                     </div>
@@ -245,7 +245,7 @@
         await LoadSelectedServiceType(selectedProductType);
     }
 
-    async Task FinishTransaction()
+    async Task FinishTransaction(float total)
     {
         showErrorMessage = detalii.Equals(String.Empty);
         if (showErrorMessage)
@@ -266,6 +266,7 @@
         receipt.Title = detalii;
         receipt.ClientDetails.Comments = detalii;
         receipt.Description = user.Title;
+        receipt.Total = total;
 
         if(receipt.Id ==0)
             await serviceRecipt.Add(receipt);

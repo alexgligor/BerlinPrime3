@@ -1,6 +1,7 @@
 ﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -40,7 +41,9 @@ namespace Berlin.Application.Invoice
 
                      });
 
-                     var image = InvoiceDocument.LoadImageWithTransparency(new FileStream(@"C:\Users\dan-alexandru.gligor\Downloads\lg.png", FileMode.Open, FileAccess.Read), 0.05f);
+
+                     var path = Path.Combine(Model.WebRootPath, Model.BillDetails.BackgroundURL);
+                     var image = InvoiceDocument.LoadImageWithTransparency(new FileStream(path, FileMode.Open, FileAccess.Read), 0.05f);
                      if (image != null)
                      {
                          page.Background().Image(image);
@@ -65,8 +68,8 @@ namespace Berlin.Application.Invoice
                             col.Item().Text($"CIF: {Address.CIF}");
                             col.Item().Text($"Adresa: {Address.Address}");
                         });
-
-                        ro.ConstantItem(80).Image(@"C:\Users\dan-alexandru.gligor\Downloads\ROFESSOr.png");
+                        var path = Path.Combine(Model.WebRootPath, Model.BillDetails.LogoURL);
+                        ro.ConstantItem(80).Image(path);
 
                     });
                     col.Item().Row(ro =>

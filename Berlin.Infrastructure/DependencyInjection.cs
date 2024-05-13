@@ -1,4 +1,5 @@
 ﻿using Berlin.Domain.Entities;
+using Berlin.Domain.Entities.Interfaces;
 using Berlin.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,7 +22,9 @@ namespace Berlin.Infrastructure
             services.AddScoped<IGenericService<Deviz>,GenericService<Deviz>>();
             services.AddScoped<IGenericService<Invoice>,GenericService<Invoice>>();
             services.AddScoped<IGenericService<BillDetails>,GenericService<BillDetails>>();
+            services.AddScoped<IGenericService<Product>,GenericService<Product>>();
             services.AddScoped<ITestService, TestService>();
+            services.AddScoped<IEntitiesManager, EnitiesManager>();
             return services;
         }
     }
