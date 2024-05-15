@@ -43,9 +43,43 @@ namespace Berlin.Infrastructure.Services
             // Presupunând că `Id` este numele proprietății după care vrei să ordonezi
             query = query.OrderByDescending(x => x.Id);
 
-            var list =  await query.ToListAsync();
+            var list =  query.ToList();
             return list.FirstOrDefault();
         }
+
+        public  TEntity GetWithListsMembers(int id, params Expression<Func<TEntity, object>>[] includeProperties)
+        {
+            IQueryable<TEntity> query = _db.Set<TEntity>();
+
+            query = query.Where(a => a.Id == id);
+
+            if (includeProperties != null)
+            {
+                foreach (var includeProperty in includeProperties)
+                {
+                    var navigationPropertyPath = includeProperty.Body as MemberExpression;
+
+                    if (navigationPropertyPath == null)
+                    {
+                        var unaryExpression = includeProperty.Body as UnaryExpression;
+                        if (unaryExpression != null && unaryExpression.NodeType == ExpressionType.Convert)
+                        {
+                            navigationPropertyPath = unaryExpression.Operand as MemberExpression;
+                        }
+                    }
+
+                    if (navigationPropertyPath != null)
+                    {
+                        var navigationPropertyName = navigationPropertyPath.Member.Name;
+                        query = query.Include(navigationPropertyName);
+                    }
+                }
+            }
+
+            var entity =  query.FirstOrDefault();
+            return entity;
+        }
+
 
         public async Task<List<TEntity>> FindAll(Expression<Func<TEntity, bool>> filter = null)
         {
@@ -162,6 +196,5 @@ namespace Berlin.Infrastructure.Services
                 throw; 
             }
         }
-
     }
 }

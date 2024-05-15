@@ -1,0 +1,133 @@
+﻿@page "/productManagement/{ProductId:int}"
+@using Berlin.Domain.Entities.ProductManagement
+
+@inject Berlin.Domain.Entities.Interfaces.IEntitiesManager Manager
+
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+
+
+<h3>Dependintele Produsului</h3>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (product != null)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4>@product.Title</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Description:</strong> @product.Description</p>
+            <p><strong>Price:</strong> @product.Price RON</p>
+            <p><strong>Count:</strong> @product.Count</p>
+        </div>
+        <div class="card-footer">
+            <h5>Servicii depmendente</h5>
+            <ul class="list-group">
+
+                @foreach (var service in product.Services)
+                {
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@service.Service.Title - </strong> @service.Service.Description  -
+                                Price: <strong>@service.Service.Price RON</strong>
+                                X <strong>@service.Multiplier</strong>
+                            </div>
+                            <button class="btn btn-danger" @onclick="()=>RemoveDependency(service)">Scade</button>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4>Adauga dependinte</h4>
+            <ul class="list-group">
+
+                @foreach (var service in Services)
+                {
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Tip:</strong> @service.ServiceType.Title <br />
+                                <strong>@service.Title:</strong> @service.Description <br />
+                                <strong>Price:</strong> @service.Price RON
+                            </div>
+                            <button class="btn btn-primary" @onclick="()=>AddDependency(service)">Add</button>
+                        </div>
+                    </li>
+
+                }
+            </ul>
+        </div>       
+    </div>
+}
+else
+{
+    <p>Product not found.</p>
+}
+
+
+@code {
+    [Parameter]
+    public int ProductId { get; set; }
+
+    private Product? product;
+    private bool isLoading = true;
+    private List<Service> Services = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        product = Manager.ProductGet(ProductId);
+
+        Services = await Manager.ServiceGetAll();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async void AddDependency(Service service)
+    {
+        var pr = new ProductService() { Service = service, ServiceId = service.Id };
+        var isthere = GetProd(service.Id);
+        if (isthere == null)
+            product.Services.Add(pr);
+        else
+            isthere.Multiplier++;
+
+        await Manager.ProductUpdate(product);
+
+        StateHasChanged();
+    }
+
+    private async void RemoveDependency(ProductService service)
+    {
+        service.Multiplier--;
+        if (service.Multiplier <= 0)
+            product.Services.Remove(service);
+
+        await Manager.ProductUpdate(product);
+
+        StateHasChanged();
+    }
+
+    private ProductService GetProd(int id)
+    {
+        try
+        {
+            return product.Services.First(p => p.ServiceId == id);
+        }
+        catch
+        {
+            
+        }
+        return null;
+    }
+
+}

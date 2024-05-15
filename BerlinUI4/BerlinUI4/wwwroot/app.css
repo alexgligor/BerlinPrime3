@@ -1,3 +1,102 @@
+﻿.muy-message {
+    display: none;
+    position: absolute;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    left: 105%; /* Poziționează mesajul în partea dreaptă a butonului */
+    top: 0;
+    white-space: nowrap; /* Previnde împachetarea textului */
+}
+
+.muy-checkbox:checked + .muy-button + .muy-message {
+    display: flex;
+    align-items: center;
+    gap:0.5em;
+}
+
+.muy-button {
+    cursor: pointer;
+    padding: 10px;
+    background-color: orangered;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 10px;
+    transition: background-color 0.2s ease;
+    display: inline-block;
+}
+
+    .muy-button:hover {
+        background-color: #0056b3;
+    }
+
+
+.form-control {
+    width: 100%;
+    min-width: 300px; /* Adjust this value as needed */
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*https://www.color-hex.com/color-palette/1294*/
+
+.toggle-section {
+    display: none;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+input[type="checkbox"]:checked + .toggle-button + .toggle-section {
+    display: block;
+    max-height: 1000px; /* Ajusteaz? dup? necesitate */
+}
+
+input[type="checkbox"]:checked + .toggle-btn + .toggle-section {
+    display: block;
+    max-height: 1000px; /* Ajusteaz? dup? necesitate */
+}
+
+.toggle-button {
+    cursor: pointer;
+    padding: 10px;
+    background-color: #005b96;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-align: left;
+    margin-bottom: 10px;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease;
+}
+.btn-add {
+    background-color: #6497b1;
+}
+
+.toggle-button:hover {
+    background-color: #0056b3;
+}
+
+.toggle-button::after {
+    content: '\25bc'; /* S?geat? în jos */
+    float: right;
+    transition: transform 0.2s ease;
+}
+
+input[type="checkbox"]:checked + .toggle-button::after {
+    transform: rotate(180deg); /* S?geat? în sus */
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -13,7 +112,7 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {

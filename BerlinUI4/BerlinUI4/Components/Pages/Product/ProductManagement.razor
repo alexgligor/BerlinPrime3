@@ -1,23 +1,21 @@
 ﻿@page "/articleslist"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-@inject IGenericService<Product> genericArticleService
 @inject IJSRuntime JSRuntime
+@inject Berlin.Domain.Entities.Interfaces.IEntitiesManager Manager
+@inject NavigationManager NavigationManager
 
 
 <PageTitle>Lista Articole</PageTitle>
 
 <h1>Articole</h1>
-
-<p>This component demonstrates showing data.</p>
-
 @if (list == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <div class="d-flex justify-content-center align-items-center ">
+    <div class="d-flex justify-content-center ">
         <InputText class="form-control-sm" @bind-Value="searchObjet" @oninput="HandleInputChange" DisplayName="Cauta" />
         <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#0" aria-controls="0">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
@@ -25,8 +23,8 @@ else
                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
             </svg>
         </button>
-   </div>
-    <hr/>
+    </div>
+    <hr />
     <table class="table table-hover">
         <thead>
             <tr>
@@ -34,28 +32,38 @@ else
                 <th>Nume</th>
                 <th>Descriere</th>
                 <th>Cantitate</th>
-                <th>Locație</th>
-                <th>Creat</th>
+                @foreach(var site in Sites)
+                {
+                    <th>@site.Title</th>
+                }
+                <th>Ultima modificare</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             <tr id="0" class="@addArticleClass">
 
-                <td><button @onclick="NewArticleSubmitCancel" class="btn">
+                <td>
+                    <button @onclick="NewArticleSubmitCancel" class="btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
                             <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
                         </svg>
-                </button></td>
+                    </button>
+                </td>
                 <td><InputText @bind-Value="newArticle.Title" /></td>
                 <td><InputText @bind-Value="newArticle.Description" /></td>
-                <td><InputNumber @bind-Value="newArticle.Count" /></td>
-                <td><InputText @bind-Value="newArticle.Site.Title" /></td>
+                <td>calculat</td>
+                @foreach (var site in newArticle.SiteProducts)
+                {
+                    <td><InputNumber @bind-Value="site.Count" /></td>
+                }
                 <td><button @onclick="NewArticleSubmit" class="btn">Add</button></td>
                 <td></td>
             </tr>
-            @{int i=0;}
+            @{
+                int i = 0;
+            }
             @foreach (var article in list)
             {
                 i++;
@@ -64,14 +72,35 @@ else
                 <tr class="@rows[article]">
 
                     <td>@i.ToString()</td>
-                        
+
                     <td>@article.Title</td>
                     <td>@article.Description</td>
                     <td>@article.Count</td>
-                    <td>@article.Site.Title</td>
-                    <td>@article.CreateDate.ToShortDateString() @article.CreateDate.ToShortTimeString() </td>
+                    @foreach (var site in Sites)
+                    {
+                        var valList = article.SiteProducts.Where(s => s.SiteId == site.Id).ToList();
+
+                        if (valList.Count == 0)
+                        {
+                            <th>n/a</th>
+                        }
+                        else
+                        {
+
+                            var val = valList.FirstOrDefault();
+                            if (val == null)
+                            {
+                                <th>n/a</th>
+                            }
+                            else
+                            {
+                                <th> @val.Count</th>
+                            }
+                        }
+                    }
+                    <td>@article.UpdateDate.ToShortDateString() @article.UpdateDate.ToShortTimeString() </td>
                     <td>
-                        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#@article.Id" aria-controls="@article.Id" @onclick ="()=>HideRow(article)" >
+                        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#@article.Id" aria-controls="@article.Id" @onclick="()=>HideRow(article)">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                                 <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
                                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
@@ -85,26 +114,45 @@ else
                                 <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
                             </svg>
                         </button>
+                        <a href="/productManagement/@article.Id" target="_blank">View</a>
                     </td>
                 </tr>
-                    if(!accordions.ContainsKey(article))
-                        accordions.Add(article, "accordion-collapse  collapse accordion-body");
+                if (!accordions.ContainsKey(article))
+                    accordions.Add(article, "accordion-collapse  collapse accordion-body");
 
                 <tr class="@accordions[article]">
 
-                    <td>            
+                    <td>
                     </td>
-                  
+
                     <td><InputText @bind-Value="article.Title" /></td>
                     <td><InputText @bind-Value="article.Description" /></td>
-                    <td><InputNumber @bind-Value="article.Count" /></td>
-                    <td><InputText @bind-Value="article.Site.Title" /></td>
-                    <td><button @onclick="()=>UpdateArticle(article)" class="btn">
+                    <td>@article.Count</td>
+                    @foreach (var site in Sites)
+                    {
+                        var sp = article.SiteProducts.Where(s => s.SiteId == site.Id).ToList();
+                        if (sp.Count == 0)
+                        {
+                            var p = new ProductSite() { SiteId = site.Id };
+                            article.SiteProducts.Add(p);
+
+                            <td><InputNumber @bind-Value="p.Count" /></td>
+                        }
+                        else
+                        {
+                            var p = sp.FirstOrDefault();
+                            <td><InputNumber @bind-Value="p.Count" /></td>
+                        }
+                    }
+                    
+                    <td>
+                        <button @onclick="()=>UpdateArticle(article)" class="btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy-fill" viewBox="0 0 16 16">
                                 <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0H3v5.5A1.5 1.5 0 0 0 4.5 7h7A1.5 1.5 0 0 0 13 5.5V0h.086a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5H14v-5.5A1.5 1.5 0 0 0 12.5 9h-9A1.5 1.5 0 0 0 2 10.5V16h-.5A1.5 1.5 0 0 1 0 14.5z" />
                                 <path d="M3 16h10v-5.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5zm9-16H4v5.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5zM9 1h2v4H9z" />
                             </svg>
-                    </button></td>
+                        </button>
+                    </td>
                     <td>
                         <button @onclick="()=>UpdateArticleSubmitCancel(article)" class="btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
@@ -113,7 +161,7 @@ else
                             </svg>
                         </button>
                     </td>
-                       
+
                 </tr>
             }
         </tbody>
@@ -123,6 +171,7 @@ else
 
 @code {
     private List<Product>? list;
+    private List<Site>? Sites;
 
     private List<Product>? listSave;
 
@@ -134,19 +183,31 @@ else
     private Dictionary<Product, string> accordions { get; set; } = new();
     private Dictionary<Product, string> rows { get; set; } = new();
 
-   
+
 
     protected override async Task OnInitializedAsync()
     {
-        listSave = await genericArticleService.GetAll();
+        listSave = await Manager.ProductGetAll();
+
         list = listSave;
+        Sites = await Manager.SiteGetAllDefaultState();
+
+        var siteProdList = new List<ProductSite>();
+        foreach(var site in Sites)
+        {
+            siteProdList.Add(new ProductSite() { SiteId = site.Id });
+        }
+        newArticle = new Product() { SiteProducts =  siteProdList};
     }
 
     async Task NewArticleSubmit()
     {
-        var article =  await genericArticleService.Add(newArticle);
-        listSave.Add(article);
-        list.Insert(0, newArticle); 
+        if (string.IsNullOrEmpty(newArticle.Title))
+            return;
+
+        var article = await Manager.ProductAdd(newArticle);
+        // listSave.Add(article);
+        list.Insert(0, newArticle);
         addArticleClass = addArticleClass + " a";
         newArticle = new Product();
         StateHasChanged();
@@ -182,7 +243,7 @@ else
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Ești sigur că vrei să ștergi?");
         if (confirmed)
         {
-            await genericArticleService.Remove(article);
+            await Manager.ProductRemove(article);
             listSave.Remove(article);
             list.Remove(article);
             // list = await genericArticleService.GetAll(); // Reîncărcați lista după ștergere
@@ -192,7 +253,7 @@ else
 
     private async Task UpdateArticle(Product article)
     {
-        await genericArticleService.Update(article);
+        await Manager.ProductUpdate(article);
         accordions[article] = "accordion-collapse collapse accordion-body";
         rows[article] = "accordion-collapse accordion-body collapse show";
         //  list = await genericArticleService.GetAll(); // Reîncărcați lista după ștergere
@@ -202,12 +263,12 @@ else
     private async Task HandleInputChange(ChangeEventArgs e)
     {
         var findStr = e.Value.ToString();
-        list = listSave.Where(art => art.Site.Title.ToLower().Contains(findStr.ToLower())
+        list = listSave.Where(art => art.Title.ToLower().Contains(findStr.ToLower())
                                                         || art.Title.ToLower().Contains(findStr.ToLower())
-                                                        || art.Description.ToLower().Contains(findStr.ToLower())
+                                                        || (!string.IsNullOrEmpty(art.Description) ? art.Description.ToLower().Contains(findStr.ToLower()) : false)
                                                         || art.Count.ToString().Contains(findStr.ToLower())
                                                         || art.Price.ToString().Contains(findStr.ToLower())).ToList();
         //list = await genericArticleService.FindAll(e.Value.ToString());
-        StateHasChanged(); 
+        StateHasChanged();
     }
 }

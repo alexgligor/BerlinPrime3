@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Berlin.Domain.Entities.ProductManagement;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace Berlin.Domain.Entities
         public string UM { get; set; } = string.Empty;
 
         public string? ImageUrl { get; set; }
-        public ICollection<ServiceProduct> Products { get; set; } = new List<ServiceProduct>();
+        public ICollection<ProductService> Products { get; set; } = new List<ProductService>();
+
     }
 }

@@ -12,6 +12,8 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 
+@inject Berlin.Domain.Entities.Interfaces.IEntitiesManager Manager
+
 <PageTitle>Pos</PageTitle>
 
 <div class="p-2 overflow-hidden" style="width: 100vw; height: 100vh; display: flex;"> 
@@ -261,35 +263,19 @@
         }
 
         if (receipt == null)
-            receipt = new Receipt() { Site = site, ClientDetails = new CompanyDetails() { Title = string.Empty} };
+            receipt = new Receipt() { Site = site, SiteId = site.Id, ClientDetails = new CompanyDetails() { Title = string.Empty} };
 
         receipt.Title = detalii;
         receipt.ClientDetails.Comments = detalii;
         receipt.Description = user.Title;
         receipt.Total = total;
 
-        if(receipt.Id ==0)
-            await serviceRecipt.Add(receipt);
-        else
-            await serviceRecipt.Update(receipt);
-
-        foreach (var serv in selectedServices)
-        {
-            serv.Title = detalii;
-            if (serv.ReceiptId == 0)
-            {
-                serv.Receipt = receipt;
-                await selledserviceRecipt.Add(serv);
-                continue;
-            }
-
-            await selledserviceRecipt.Update(serv);
-        }
+        await Manager.ReceiptAdd(receipt, selectedServices, detalii);
+    
         await PerformOperationAsync();
         NavigationManager.NavigateTo($"/userselect/{MachineName}", forceLoad: true);
         receipt = null;
         Utile.Clear();
-
     }
 
     async Task PerformOperationAsync()

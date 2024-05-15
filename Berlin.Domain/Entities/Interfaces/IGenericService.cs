@@ -10,6 +10,7 @@ namespace Berlin.Domain.Entities
     public interface IGenericService<T>
     {
         Task<T> Get(int id, params Expression<Func<T, object>>[] includeProperties);
+        T GetWithListsMembers(int id, params Expression<Func<T, object>>[] includeProperties);
         Task<List<T>> GetAll();
 
         Task<List<T>> GetAll(params Expression<Func<T, object>>[] includeProperties);

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Berlin.Domain.Entities
+﻿namespace Berlin.Domain.Entities
 {
     public class CompanyDetails : BaseDbObject
     {

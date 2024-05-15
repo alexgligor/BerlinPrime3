@@ -95,5 +95,10 @@ namespace Berlin.Infrastructure.Services
         {
             throw new NotImplementedException();
         }
+
+        public GenericArticle GetWithListsMembers(int id, params Expression<Func<GenericArticle, object>>[] includeProperties)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

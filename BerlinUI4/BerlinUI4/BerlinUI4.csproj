@@ -14,10 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\uploads\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="C:\Users\dan-alexandru.gligor\.nuget\packages\questpdf\2024.3.2\buildTransitive\..\LatoFont\OFL.txt" />
   </ItemGroup>
 

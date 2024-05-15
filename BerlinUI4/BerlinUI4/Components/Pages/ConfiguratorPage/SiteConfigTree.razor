@@ -228,20 +228,20 @@
 
     private async Task HandleValidSubmit(Site cuser)
     {
-        await Manager.UpdateSite(cuser);
+        await Manager.SiteUpdate(cuser);
         StateHasChanged();
     }
 
     private async Task DeleteSite(Site cuser)
     {
-        await Manager.DeleteSite(cuser);
+        await Manager.SiteDelete(cuser);
         SiteNodes.Remove(cuser);
         StateHasChanged();
     }
 
     private async Task HandleNewSiteSubmit(Site item)
     {
-        await Manager.AddSite(item);
+        await Manager.SiteAdd(item);
 
         newUserNode = new Site();
         SiteNodes.Add(item);
@@ -250,14 +250,14 @@
 
     private async Task CheckLocation(Site site, Division div)
     {
-        await Manager.AddRemoveDevisionFromSite(site, div);
+        await Manager.SiteAddRemoveDevision(site, div);
         StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        SiteNodes = await Manager.GetSites();
-        Devisions = await Manager.GetDivisions();
+        SiteNodes = await Manager.SiteGetAll();
+        Devisions = await Manager.DivisionsGet();
     }
     private async void LoadLogoFiles(InputFileChangeEventArgs e, Site site)
     {
@@ -265,7 +265,7 @@
         if (file != null)
         {
             site.BillDetails.LogoURL = await ImageHelper.SaveInvoiceLogoImg(file, Environment.WebRootPath);
-            await Manager.UpdateSite(site);
+            await Manager.SiteUpdate(site);
             StateHasChanged();
         }
     }
@@ -275,7 +275,7 @@
         if (file != null)
         {
             site.BillDetails.BackgroundURL = await ImageHelper.SaveInvoiceBackgroundImg(file, Environment.WebRootPath);
-            await Manager.UpdateSite(site);
+            await Manager.SiteUpdate(site);
             StateHasChanged();
         }
     }

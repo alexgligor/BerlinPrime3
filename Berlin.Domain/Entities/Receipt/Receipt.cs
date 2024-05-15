@@ -31,5 +31,8 @@ namespace Berlin.Domain.Entities
         public CompanyDetails ClientDetails { get; set; }
         public int ClientDetailsId { get; set; }
 
+        public ICollection<SelledService> SelledServices { get; set; } = new List<SelledService>();
+
+
     }
 }
