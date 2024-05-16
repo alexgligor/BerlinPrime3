@@ -6,7 +6,7 @@
         Task ReceiptAdd(Receipt receipt, List<SelledService> selledServices, string details);
         Task ProductCountDown(int productId,int siteId,int serviceId, int number);
         Task<Product> ProductAdd(Product product);
-        Product ProductGet(int id);
+        Task<Product> ProductGet(int id);
         Task ProductRemove(Product product);
         Task ProductUpdate(Product product);
         Task<List<Product>> ProductGetAll();

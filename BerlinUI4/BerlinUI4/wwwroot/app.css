@@ -1,4 +1,27 @@
-﻿.muy-message {
+﻿.position-relative {
+    position: relative;
+    display: inline-block;
+}
+
+.badge-position {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(20%) translateY(-50%);
+    color: white;
+}
+
+.bg-success {
+    background-color: green !important;
+    color: white;
+}
+
+.bg-primary {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+.muy-message {
     display: none;
     position: absolute;
     background-color: #f8f9fa;

@@ -49,6 +49,8 @@
                                         <ValidationMessage For="@(() => usernode.Item.Title)" class="text-danger" />
                                         <label for="description">Descriere:</label>
                                         <InputText id="description" class="form-control" @bind-Value="usernode.Item.Description" />
+                                        <label for="target">Target:</label>
+                                        <InputNumber id="target" class="form-control" @bind-Value="usernode.Item.Target" />
                                         <label for="isDeleted">Sterge:</label>
                                         <InputCheckbox id="isDeleted" @bind-Value="usernode.Item.IsDeleted" />
                                     </div>

@@ -8,9 +8,11 @@
 @inject IGenericService<User> serviceUser
 @inject IGenericService<Receipt> serviceRecipt
 @inject IGenericService<SelledService> selledserviceRecipt
+@using Berlin.Domain.Entities.Interfaces
 @using Berlin.Infrastructure
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject ITargetService targetService
 
 @inject Berlin.Domain.Entities.Interfaces.IEntitiesManager Manager
 
@@ -58,23 +60,31 @@
     <div style="width: 21.5vw; height: 100vh;">
         <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary" style="width: 380px;flex-direction: column; height: 100vh">
             <div class="container d-flex align-items-center justify-content-center">
-                <div class="text-center">
-                  
-                    @if (user != null)
-                    {
-                        var imgUrl = string.IsNullOrEmpty(user.ImageUrl) ? "https://github.com/mdo.png" : user.ImageUrl;
-                    
-                        <img src="@imgUrl" alt="mdo" width="152" height="152" class="rounded-circle p-2" @onclick="ShowModal" style="cursor: pointer;">
+                <div class="container d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        @if (user != null)
+                        {
+                            var imgUrl = string.IsNullOrEmpty(user.ImageUrl) ? "https://github.com/mdo.png" : user.ImageUrl;
+                            var badgeClass = currentUserTarget > 99 ? "badge bg-success" : "badge bg-primary";
 
-                        <p class="fw-bold">@user.Title</p>
-                    }
+                            <div class="position-relative">
+                                <img src="@imgUrl" alt="mdo" width="152" height="152" class="rounded-circle p-2" @onclick="ShowModal" style="cursor: pointer;">
+                                <div class="badge-position">
+                                    <span class="@badgeClass">@currentUserTarget.ToString("F1")%</span>
+                                </div>
+                            </div>
 
-                    <form class="m-1 p-2 justify-content-center" role="search">
-                        <div class="mb-3">
-                            <input type="search" @bind="detalii" class="form-control form-control-dark text-bg-dark align-content-center" placeholder="Detalii..." aria-label="Search">
-                        </div>
-                    </form>
+                            <p class="fw-bold">@user.Title</p>
+                        }
+
+                        <form class="m-1 p-2 justify-content-center" role="search">
+                            <div class="mb-3">
+                                <input type="search" @bind="detalii" class="form-control form-control-dark text-bg-dark align-content-center" placeholder="Detalii..." aria-label="Search">
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
             </div>
 
             <div style="overflow-y: hidden;" id="SelectedItemsId">
@@ -192,14 +202,17 @@
     private List<User> users { get; set; }
     private string detalii = string.Empty;
     private List<SelledService> selectedServices = new List<SelledService>();
+    private float currentUserTarget;
 
 
     protected override async Task OnInitializedAsync()
     {
-        users = await serviceUser.GetAll();
+        site = Utile.GetSite(MachineName);
+        users = site.Users.Select(u => u.User).ToList();
 
         user = Utile.GetUser(MachineName);
-        site = Utile.GetSite(MachineName);
+        currentUserTarget = await targetService.GetCurrentMonthTargetPercentageAsync(user.Id);
+        
         receipt = Utile.GetReceipt(MachineName);
         if (site != null)
         {
@@ -271,7 +284,7 @@
         receipt.Total = total;
 
         await Manager.ReceiptAdd(receipt, selectedServices, detalii);
-    
+
         await PerformOperationAsync();
         NavigationManager.NavigateTo($"/userselect/{MachineName}", forceLoad: true);
         receipt = null;
@@ -280,7 +293,7 @@
 
     async Task PerformOperationAsync()
     {
-    
+
         // Logica operației
         showSuccessMessage = true;
         StateHasChanged(); // Actualizează UI-ul
@@ -331,6 +344,7 @@
     async void SelectUser(User _user)
     {
         user = _user;
+        currentUserTarget = await targetService.GetCurrentMonthTargetPercentageAsync(user.Id);
         showModal = false;
         StateHasChanged();
     }

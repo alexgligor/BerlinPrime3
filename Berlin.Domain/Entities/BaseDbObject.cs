@@ -13,4 +13,5 @@ namespace Berlin.Domain.Entities
         public DateTime UpdateDate { get; set; }
         public bool IsDeleted { get; set; } = false;
     }
+
 }

@@ -11,7 +11,6 @@ namespace Berlin.Infrastructure.Services
         {
 
         }
-        public DbSet<GenericArticle> GenericArticles { get; set; }
         public DbSet<Division> Divisions { get; set; }
         public DbSet<ServiceType> ServiceTypes { get; set; }
         public DbSet<Device> Devices { get; set; }

@@ -85,7 +85,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        product = Manager.ProductGet(ProductId);
+        product = await Manager.ProductGet(ProductId);
 
         Services = await Manager.ServiceGetAll();
         isLoading = false;

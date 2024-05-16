@@ -11,7 +11,6 @@ namespace Berlin.Infrastructure
         IGenericService<Service> serviceService;
         IGenericService<Product> productService;
         IGenericService<ProductHistory> productHistoryService;
-        IProductService dedicatedProductService;
 
         public EnitiesManager(
             IGenericService<Site> siteService, 
@@ -19,8 +18,7 @@ namespace Berlin.Infrastructure
             IGenericService<Receipt> receiptService,
             IGenericService<Service> serviceService,
             IGenericService<Product> productService,
-            IGenericService<ProductHistory> productHistoryService,
-            IProductService dedicatedProductService
+            IGenericService<ProductHistory> productHistoryService
             )
         {
             this.siteService = siteService;
@@ -29,7 +27,6 @@ namespace Berlin.Infrastructure
             this.serviceService = serviceService;
             this.productService = productService;
             this.productHistoryService = productHistoryService;
-            this.dedicatedProductService = dedicatedProductService;
         }
 
         public async Task ReceiptAdd(Receipt receipt, List<SelledService> selledServices, string details)
@@ -219,9 +216,9 @@ namespace Berlin.Infrastructure
             await productService.Update(product);
         }
 
-        public  Product ProductGet(int id)
+        public async  Task<Product> ProductGet(int id)
         {
-            return  dedicatedProductService.GetWithListsMembers(id);
+            return  await productService.Get(id);
         }
 
         public Task<List<Service>> ServiceGetAll()

@@ -6,5 +6,9 @@
 
         public ICollection<SiteUser> Sites { get; set; } = new List<SiteUser>();
 
+        public float? Target { get; set; } = 25000;
+
     }
+
+
 }
