@@ -1,1 +1,223 @@
 ﻿@page "/"
+@using Berlin.Domain.Entities.Interfaces
+@using Microsoft.JSInterop
+@using System.Text.Json
+@inject IJSRuntime JSRuntime
+
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IReportsDataService targetService
+<div class="p-3 m-2 d-flex flex-column gap-3">
+    <h1>Target</h1>
+    <div class="card p-2" style="width:700px;height:400px">
+        <canvas id="myTargetChart"></canvas>
+    </div>
+    <h1>Performanta Utilizatori</h1>
+    <div class="card p-2" style="width:700px;height:400px">
+        <canvas id="userperformance"></canvas>
+    </div>
+
+    <h1>Performanta Servicii</h1>
+     <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Select Services
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            @foreach (var service in FilteredServices)
+            {
+                <div class="form-check dropdown-item">
+                    <Input type="checkbox" class="form-check-input" id="@service.service" @onchange="@(e => UpdateFilteredService(service.service, e.Value))" checked="@service.filtered"/>
+                    <label class="form-check-label" for="@service.service">@service.service</label>
+                </div>
+            }
+        </div>
+    </div> 
+    <div class="card p-2" style="width:700px;height:400px">
+        <canvas id="serviceperformance"></canvas>
+    </div>
+    <div class="card p-2" style="width:700px;height:400px">
+        <canvas id="serviceperformancePercentage"></canvas>
+    </div>
+
+
+
+    <h1>Tipuri de Servicii</h1>
+    <div class="card p-2" style="width:700px;height:400px">
+        <canvas id="stper"></canvas>
+    </div>
+    <div class="card p-2" style="width:700px;height:400px">
+        <canvas id="stpro"></canvas>
+    </div>
+
+    <h1>Test</h1>
+    <canvas id="myPieChart"></canvas>
+
+</div>
+
+@code {
+    private bool _isChartRendered;
+    private bool _isChartRendered2;
+    private bool _isChartRendered21;
+    private bool _isChartRendered212;
+    private bool _isChartRendered22;
+    private bool _isChartRendered3;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await RenderTargetForAllUsers(firstRender);
+        await RanderServicePerformance(firstRender);
+        await RanderServiceTypePerformance(firstRender);
+
+
+        await RanderUserPerformance(firstRender);
+    }
+
+    async Task RenderTargetForAllUsers(bool firstRender)
+    {
+        var data = await targetService.GetCurrentMonthTargetsForAllUsersAsync();
+
+        if (firstRender && !_isChartRendered)
+        {
+            var pieChartData = new PieChartData
+                {
+                    Title = "Target Utilizatori",
+                    Labels = data.Select(d => d.User.Title).ToArray(),
+                    Data = data.Select(d => (int)d.TargetValue).ToArray(),
+                    xTitle = "Nume Utilizator",
+                    yTitle = "%"
+                };
+
+            await JSRuntime.InvokeVoidAsync("renderBarChart", "myTargetChart", pieChartData);
+            _isChartRendered = true;
+        }
+    }
+
+    public List<(Service service, float totalAmount, float percentage)> SerciceList;
+    public List<(string service, bool filtered)> FilteredServices = new List<(string service, bool filtered)>();
+
+    private async void UpdateFilteredService(string service, object checkedValue)
+    {
+        var index = FilteredServices.FindIndex(s => s.service == service);
+        if (index != -1)
+        {
+            FilteredServices[index] = (service, (bool)checkedValue);
+        }
+        await checkService(service);
+    }
+
+    async Task RanderServicePerformance(bool firstRender)
+    {
+        SerciceList = await targetService.GetServiceSumsByPeriodAsync(1, DateTime.Now.AddDays(-30), DateTime.Now);
+        SerciceList.ForEach(a => FilteredServices.Add((a.service.Title, true)));
+        await render(firstRender);
+
+    }
+
+    async Task checkService(string service)
+    {
+        SerciceList = SerciceList.FindAll(s => s.service.Title != service).ToList();
+        await render(true);    
+    }
+
+    async Task render(bool firstRender)
+    {
+        
+        
+        if (firstRender && !_isChartRendered2)
+        {
+            var pieChartData = new PieChartData
+                {
+                    Title = "Performanta Servicii",
+                    Labels = SerciceList.Select(d => d.service.Title).ToArray(),
+                    Data = SerciceList.Select(d => (int)d.totalAmount).ToArray(),
+                    xTitle = "Serviciu",
+                    yTitle = "RON"
+                };
+
+            await JSRuntime.InvokeVoidAsync("renderBarChart", "serviceperformance", pieChartData);
+            _isChartRendered2 = true;
+        }
+
+        if (firstRender && !_isChartRendered22)
+        {
+            var pieChartData = new PieChartData
+                {
+                    Title = "Performanta Servicii",
+                    Labels = SerciceList.Select(d => d.service.Title).ToArray(),
+                    Data = SerciceList.Select(d => (int)d.percentage).ToArray()
+                };
+
+            await JSRuntime.InvokeVoidAsync("renderPieChart", "serviceperformancePercentage", pieChartData);
+            _isChartRendered22 = true;
+        }
+    }
+
+    async Task RanderServiceTypePerformance(bool firstRender)
+    {
+        var data2 = await targetService.GetServiceTypeSumsByPeriodAsync(1, DateTime.Now.AddDays(-1000), DateTime.Now);
+
+        if (firstRender && !_isChartRendered21)
+        {
+            var pieChartData = new PieChartData
+                {
+                    Title = "Performanta Tipuri de Servicii",
+                    Labels = data2.Select(d => d.serviceType.Title).ToArray(),
+                    Data = data2.Select(d => (int)d.totalAmount).ToArray(),
+                    xTitle = "Tip Serviciu",
+                    yTitle = "RON"
+                };
+
+            await JSRuntime.InvokeVoidAsync("renderBarChart", "stper", pieChartData);
+            _isChartRendered21 = true;
+        }
+
+        if (firstRender && !_isChartRendered212)
+        {
+            var pieChartData = new PieChartData
+                {
+                    Title = "Procente Tipuri de Servicii",
+                    Labels = data2.Select(d => d.serviceType.Title).ToArray(),
+                    Data = data2.Select(d => (int)d.percentage).ToArray()
+                };
+
+            await JSRuntime.InvokeVoidAsync("renderPieChart", "stpro", pieChartData);
+            _isChartRendered212 = true;
+        }
+
+    }
+
+    async Task RanderUserPerformance(bool firstRender)
+    {
+        var data2 = await targetService.GetMonthlySumsByUserAndPeriodAsync(DateTime.Now.AddDays(-1000), DateTime.Now);
+
+        if (firstRender && !_isChartRendered3)
+        {
+            var monts = new HashSet<string>(data2.SelectMany(up => up.DateTotal.Select(dt => dt.month))).ToList();
+
+            var usersList = data2.Select(item => item.User.Title).ToList();
+
+            var usersValues = data2
+                .Select(item => monts
+                    .Select(date => item.DateTotal
+                        .Find(a => a.month == date)?.totalAmount ?? 0)
+                    .ToList())
+                .ToList();
+
+
+            await JSRuntime.InvokeVoidAsync("renderTest", "userperformance", monts, usersList, usersValues);
+           // await JSRuntime.InvokeVoidAsync("renderCustomBarChart", "userperformance", data2, monts);
+            _isChartRendered3 = true;
+        }
+
+    }
+
+    public class PieChartData
+    {
+        public string[] Labels { get; set; }
+        public string xTitle { get; set; }
+        public string yTitle { get; set; }
+        public int[] Data { get; set; }
+        public string Title { get; set; }
+    }
+}

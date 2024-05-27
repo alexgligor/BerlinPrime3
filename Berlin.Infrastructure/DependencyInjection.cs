@@ -25,7 +25,7 @@ namespace Berlin.Infrastructure
             services.AddScoped<IGenericService<ProductHistory>,GenericService<ProductHistory>>();
             services.AddScoped<ITestService, TestService>();
             services.AddScoped<IEntitiesManager, EnitiesManager>();
-            services.AddScoped<ITargetService, TargetService>();
+            services.AddScoped<IReportsDataService, ReportsDataService>();
             return services;
         }
     }
